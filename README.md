@@ -191,7 +191,7 @@ All features map to the CS2301 syllabus.
 
 ### System Architecture Diagram
 
-![Border Command Center – system architecture](docs/architecture.png)
+![Border Command Center – system architecture](Architechure.png)
 
 The system is organized into four layers:
 
