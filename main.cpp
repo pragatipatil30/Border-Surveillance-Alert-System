@@ -4,9 +4,56 @@
 #include <fstream>
 #include "common/Intruder.h"
 using namespace std;
-
 Intruder intruders[100];
 int count = 0;
+int linearSearch(Intruder arr[], int size, int key)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (arr[i].id == key)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+int binarySearch(int arr[], int size, int key)
+{
+    int low = 0;
+    int high = size - 1;
+    while (low <= high)
+    {
+        int mid = (low + high) / 2;
+        if (arr[mid] == key)
+        {
+            return mid;
+        }
+        else if (key < arr[mid])
+        {
+            high = mid - 1;
+        }
+        else
+        {
+            low = mid + 1;
+        }
+    }
+    return -1;
+}
+void bubbleSort(int arr[], int size)
+{
+   for (int i = 0; i < size - 1; i++)
+    {
+        for (int j = 0; j < size - i - 1; j++)
+        {
+            if (arr[j] > arr[j + 1])
+            {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
 string threatcategory(int level);
 void saverecords();
 void loadrecords();
@@ -80,30 +127,25 @@ void displayrecords()
 void searchintruder()
 {
    int searchid;
-   bool found = false;
    cout<<"\nENTER INTRUDER ID TO SEARCH: ";
    cin>> searchid;
-   for(int i = 0; i < count; i++)
+   int result = linearSearch(intruders, count, searchid);
+   if(result != -1)
    {
-   
-      if(searchid == intruders[i].id)
-      {
-          cout<<"\nINTRUDER FOUND!" << endl;
-          cout<<"----------------------------" << endl;
-          cout<<"INTRUDER ID       :" <<intruders[i].id<<endl;
-          cout<<"INTRUDER NAME       :" <<intruders[i].name<<endl;
-          cout<<"INTRUDER LOCATION       :" <<intruders[i].location<<endl;
-          cout<<"INTRUDER THREAT LEVEL :" << intruders[i].threatlevel << endl;
-          cout<<"THREAT CATEGORY       :" << threatcategory(intruders[i].threatlevel) << endl;
-          cout << "---------------------------------" << endl;
-          found = true;
-          break;
-      }
-   }
-   if(found == false)
-   {
-      cout<<"\nINTRUDER NOT FOUND!" << endl;
-   }
+      cout << "\nINTRUDER FOUND!" << endl;
+        cout << "----------------------------" << endl;
+
+        cout << "INTRUDER ID       : " << intruders[result].id << endl;
+        cout << "INTRUDER NAME     : " << intruders[result].name << endl;
+        cout << "INTRUDER LOCATION : " << intruders[result].location << endl;
+        cout << "INTRUDER THREAT LEVEL : " << intruders[result].threatlevel << endl;
+        cout << "THREAT CATEGORY   : " << threatcategory(intruders[result].threatlevel) <<endl;
+        cout << "---------------------------------" << endl;
+    }
+    else
+    {
+        cout << "\nINTRUDER NOT FOUND!" << endl;
+    }
 }
 void updatethreatlevel()
 {
