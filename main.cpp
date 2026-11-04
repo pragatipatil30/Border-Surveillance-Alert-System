@@ -2,15 +2,9 @@
 #include <string>
 #include <cstdlib>
 #include <fstream>
+#include "common/Intruder.h"
 using namespace std;
 
-struct Intruder
-{
-   int id;
-   string name;
-   string location;
-   int threatlevel;
-};
 Intruder intruders[100];
 int count = 0;
 string threatcategory(int level);
