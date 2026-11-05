@@ -54,6 +54,21 @@ void bubbleSort(int arr[], int size)
         }
     }
 }
+void bubbleSortIntruders(Intruder arr[], int size)
+{
+   for(int i = 0; i < size-1; i++)
+   {
+      for(int j = 0; j < size-i-1; j++)
+      {
+         if(arr[j].id > arr[j+1].id)
+         {
+            Intruder temp = arr[j];
+            arr[j] = arr[j+1];
+            arr[j+1] = temp; 
+         }
+      }
+   }
+}
 string threatcategory(int level);
 void saverecords();
 void loadrecords();
@@ -97,6 +112,35 @@ void addintruder()
     cout<<"---------------------------------"<< endl;
     count++;
     saverecords();
+}
+void sortintruderrecords()
+{
+    if (count == 0)
+    {
+        cout << "\nNO RECORDS AVAILABLE!" << endl;
+        return;
+    }
+
+    Intruder sortedIntruders[100];
+
+    for (int i = 0; i < count; i++)
+    {
+        sortedIntruders[i] = intruders[i];
+    }
+
+    bubbleSortIntruders(sortedIntruders, count);
+
+    cout << "\n======= SORTED INTRUDER RECORDS =======" << endl;
+
+    for (int i = 0; i < count; i++)
+    {
+        cout << "\nINTRUDER ID       : " << sortedIntruders[i].id << endl;
+        cout << "INTRUDER NAME     : " << sortedIntruders[i].name << endl;
+        cout << "INTRUDER LOCATION : " << sortedIntruders[i].location << endl;
+        cout << "INTRUDER THREAT LEVEL : " << sortedIntruders[i].threatlevel << endl;
+        cout << "THREAT CATEGORY   : " << threatcategory(sortedIntruders[i].threatlevel) << endl;
+        cout << "-----------------------------------" << endl;
+    }
 }
 void displayrecords()
 {
@@ -339,6 +383,7 @@ void menu()
     cout << "5. Delete Record" << endl;
     cout << "6. Exit SYSTEM" << endl;
     cout << "7. System Statistics" << endl;
+    cout << "8. Sort Intruder Records by ID" << endl;
     cout << "=========================================" << endl;
 }
 int main()
@@ -374,13 +419,15 @@ int main()
             cout << "   THANK YOU FOR USING THE SYSTEM" << endl;
             cout << "=========================================" << endl;
             cout << " BORDER SURVEILLANCE ALERT SYSTEM" << endl;
-            cout << " Developed By: Pragati Patil" << endl;
             cout << " Stay Safe! Goodbye!" << endl;
             cout << "=========================================" << endl;
             break;
        case 7:
            systemstatistics();
            break;
+         case 8:
+            sortintruderrecords();
+            break;
         default:
                 cout << "Invalid Choice!" << endl;
       }
