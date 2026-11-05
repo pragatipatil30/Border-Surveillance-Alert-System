@@ -69,6 +69,28 @@ void bubbleSortIntruders(Intruder arr[], int size)
       }
    }
 }
+void selectionSortIntruders(Intruder arr[], int size)
+{
+    for(int i = 0; i < size - 1; i++)
+    {
+        int minIndex = i;
+
+        for(int j = i + 1; j < size; j++)
+        {
+            if(arr[j].id < arr[minIndex].id)
+            {
+                minIndex = j;
+            }
+        }
+
+        if(minIndex != i)
+        {
+            Intruder temp = arr[i];
+            arr[i] = arr[minIndex];
+            arr[minIndex] = temp;
+        }
+    }
+}
 string threatcategory(int level);
 void saverecords();
 void loadrecords();
@@ -133,6 +155,35 @@ void sortintruderrecords()
     cout << "\n======= SORTED INTRUDER RECORDS =======" << endl;
 
     for (int i = 0; i < count; i++)
+    {
+        cout << "\nINTRUDER ID       : " << sortedIntruders[i].id << endl;
+        cout << "INTRUDER NAME     : " << sortedIntruders[i].name << endl;
+        cout << "INTRUDER LOCATION : " << sortedIntruders[i].location << endl;
+        cout << "INTRUDER THREAT LEVEL : " << sortedIntruders[i].threatlevel << endl;
+        cout << "THREAT CATEGORY   : " << threatcategory(sortedIntruders[i].threatlevel) << endl;
+        cout << "-----------------------------------" << endl;
+    }
+}
+void selectionsortintruderrecords()
+{
+    if(count == 0)
+    {
+        cout << "No intruder records available!" << endl;
+        return;
+    }
+
+    Intruder sortedIntruders[100];
+
+    for(int i = 0; i < count; i++)
+    {
+        sortedIntruders[i] = intruders[i];
+    }
+
+    selectionSortIntruders(sortedIntruders, count);
+
+    cout << "\n======= SELECTION SORTED INTRUDER RECORDS =======" << endl;
+
+    for(int i = 0; i < count; i++)
     {
         cout << "\nINTRUDER ID       : " << sortedIntruders[i].id << endl;
         cout << "INTRUDER NAME     : " << sortedIntruders[i].name << endl;
@@ -384,6 +435,7 @@ void menu()
     cout << "6. Exit SYSTEM" << endl;
     cout << "7. System Statistics" << endl;
     cout << "8. Sort Intruder Records by ID" << endl;
+    cout << "9. Selection Sort Intruder Records by ID" << endl;
     cout << "=========================================" << endl;
 }
 int main()
@@ -428,6 +480,9 @@ int main()
          case 8:
             sortintruderrecords();
             break;
+         case 9:
+             selectionsortintruderrecords();
+             break;
         default:
                 cout << "Invalid Choice!" << endl;
       }
