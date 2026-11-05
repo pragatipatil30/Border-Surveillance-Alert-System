@@ -91,6 +91,22 @@ void selectionSortIntruders(Intruder arr[], int size)
         }
     }
 }
+void insertionSortIntruders(Intruder arr[], int size)
+{
+    for(int i = 1; i < size; i++)
+    {
+        Intruder key = arr[i];
+        int j = i - 1;
+
+        while(j >= 0 && arr[j].id > key.id)
+        {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+
+        arr[j + 1] = key;
+    }
+}
 string threatcategory(int level);
 void saverecords();
 void loadrecords();
@@ -182,6 +198,35 @@ void selectionsortintruderrecords()
     selectionSortIntruders(sortedIntruders, count);
 
     cout << "\n======= SELECTION SORTED INTRUDER RECORDS =======" << endl;
+
+    for(int i = 0; i < count; i++)
+    {
+        cout << "\nINTRUDER ID       : " << sortedIntruders[i].id << endl;
+        cout << "INTRUDER NAME     : " << sortedIntruders[i].name << endl;
+        cout << "INTRUDER LOCATION : " << sortedIntruders[i].location << endl;
+        cout << "INTRUDER THREAT LEVEL : " << sortedIntruders[i].threatlevel << endl;
+        cout << "THREAT CATEGORY   : " << threatcategory(sortedIntruders[i].threatlevel) << endl;
+        cout << "-----------------------------------" << endl;
+    }
+}
+void insertionsortintruderrecords()
+{
+    if(count == 0)
+    {
+        cout << "No intruder records available!" << endl;
+        return;
+    }
+
+    Intruder sortedIntruders[100];
+
+    for(int i = 0; i < count; i++)
+    {
+        sortedIntruders[i] = intruders[i];
+    }
+
+    insertionSortIntruders(sortedIntruders, count);
+
+    cout << "\n======= INSERTION SORTED INTRUDER RECORDS =======" << endl;
 
     for(int i = 0; i < count; i++)
     {
@@ -436,6 +481,7 @@ void menu()
     cout << "7. System Statistics" << endl;
     cout << "8. Sort Intruder Records by ID" << endl;
     cout << "9. Selection Sort Intruder Records by ID" << endl;
+    cout << "10. Insertion Sort Intruder Records by ID" << endl;
     cout << "=========================================" << endl;
 }
 int main()
@@ -483,6 +529,9 @@ int main()
          case 9:
              selectionsortintruderrecords();
              break;
+         case 10:
+              insertionsortintruderrecords();
+              break;
         default:
                 cout << "Invalid Choice!" << endl;
       }
