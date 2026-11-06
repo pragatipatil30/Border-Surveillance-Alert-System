@@ -107,6 +107,91 @@ void insertionSortIntruders(Intruder arr[], int size)
         arr[j + 1] = key;
     }
 }
+void merge(Intruder arr[], int left, int mid, int right)
+{
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+    Intruder L[100];
+    Intruder R[100];
+    for(int i = 0; i < n1; i++)
+    {
+        L[i] = arr[left + i];
+    }
+    for(int j = 0; j < n2; j++)
+    {
+        R[j] = arr[mid + 1 + j];
+    }
+    int i = 0, j = 0, k = left;
+    while(i < n1 && j < n2)
+    {
+        if(L[i].id <= R[j].id)
+        {
+            arr[k] = L[i];
+            i++;
+        }
+        else
+        {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+    while(i < n1)
+    {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+    while(j < n2)
+    {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+void mergeSortIntruders(Intruder arr[], int left, int right)
+{
+    if(left < right)
+    {
+        int mid = left + (right - left) / 2;
+        mergeSortIntruders(arr, left, mid);
+        mergeSortIntruders(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+}
+int partitionIntruders(Intruder arr[], int low, int high)
+{
+    int pivot = arr[high].id;
+    int i = low - 1;
+
+    for(int j = low; j < high; j++)
+    {
+        if(arr[j].id <= pivot)
+        {
+            i++;
+
+            Intruder temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+
+    Intruder temp = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp;
+
+    return i + 1;
+}
+void quickSortIntruders(Intruder arr[], int low, int high)
+{
+    if(low < high)
+    {
+        int pivotIndex = partitionIntruders(arr, low, high);
+
+        quickSortIntruders(arr, low, pivotIndex - 1);
+        quickSortIntruders(arr, pivotIndex + 1, high);
+    }
+}
 string threatcategory(int level);
 void saverecords();
 void loadrecords();
@@ -227,6 +312,59 @@ void insertionsortintruderrecords()
     insertionSortIntruders(sortedIntruders, count);
 
     cout << "\n======= INSERTION SORTED INTRUDER RECORDS =======" << endl;
+
+    for(int i = 0; i < count; i++)
+    {
+        cout << "\nINTRUDER ID       : " << sortedIntruders[i].id << endl;
+        cout << "INTRUDER NAME     : " << sortedIntruders[i].name << endl;
+        cout << "INTRUDER LOCATION : " << sortedIntruders[i].location << endl;
+        cout << "INTRUDER THREAT LEVEL : " << sortedIntruders[i].threatlevel << endl;
+        cout << "THREAT CATEGORY   : " << threatcategory(sortedIntruders[i].threatlevel) << endl;
+        cout << "-----------------------------------" << endl;
+    }
+}
+void mergesortintruderrecords()
+{
+    if(count == 0)
+    {
+        cout << "No intruder records available!" << endl;
+        return;
+    }
+    Intruder sortedIntruders[100];
+    for(int i = 0; i < count; i++)
+    {
+        sortedIntruders[i] = intruders[i];
+    }
+    mergeSortIntruders(sortedIntruders, 0, count - 1);
+    cout << "\n======= MERGE SORTED INTRUDER RECORDS =======" << endl;
+    for(int i = 0; i < count; i++)
+    {
+        cout << "\nINTRUDER ID       : " << sortedIntruders[i].id << endl;
+        cout << "INTRUDER NAME     : " << sortedIntruders[i].name << endl;
+        cout << "INTRUDER LOCATION : " << sortedIntruders[i].location << endl;
+        cout << "INTRUDER THREAT LEVEL : " << sortedIntruders[i].threatlevel << endl;
+        cout << "THREAT CATEGORY   : " << threatcategory(sortedIntruders[i].threatlevel) << endl;
+        cout << "-----------------------------------" << endl;
+    }
+}
+void quicksortintruderrecords()
+{
+    if(count == 0)
+    {
+        cout << "No intruder records available!" << endl;
+        return;
+    }
+
+    Intruder sortedIntruders[100];
+
+    for(int i = 0; i < count; i++)
+    {
+        sortedIntruders[i] = intruders[i];
+    }
+
+    quickSortIntruders(sortedIntruders, 0, count - 1);
+
+    cout << "\n======= QUICK SORTED INTRUDER RECORDS =======" << endl;
 
     for(int i = 0; i < count; i++)
     {
@@ -482,6 +620,8 @@ void menu()
     cout << "8. Sort Intruder Records by ID" << endl;
     cout << "9. Selection Sort Intruder Records by ID" << endl;
     cout << "10. Insertion Sort Intruder Records by ID" << endl;
+    cout << "10. Insertion Sort Intruder Records by ID" << endl;
+    cout << "12. Quick Sort Intruder Records by ID" << endl;
     cout << "=========================================" << endl;
 }
 int main()
@@ -532,6 +672,12 @@ int main()
          case 10:
               insertionsortintruderrecords();
               break;
+         case 11:
+            mergesortintruderrecords();
+            break;
+         case 12:
+            quicksortintruderrecords();
+            break;
         default:
                 cout << "Invalid Choice!" << endl;
       }
