@@ -1,19 +1,13 @@
-// ============================================================================
+
 //  person3/Graph.cpp
 //  Implementation of the border-map graph (see Graph.h for the overview).
-// ============================================================================
 #include "Graph.h"
-
 #include <sstream>
-
 namespace
 {
     const std::string kEmptyName = "";
 }
-
-// ---------------------------------------------------------------------------
 //  Construction / destruction
-// ---------------------------------------------------------------------------
 Graph::Graph(bool directed, int initialCapacity)
     : vertices_(nullptr), count_(0),
       capacity_(initialCapacity > 0 ? initialCapacity : 8),
@@ -55,9 +49,7 @@ void Graph::grow()
     capacity_ = newCapacity;
 }
 
-// ---------------------------------------------------------------------------
 //  Building the map
-// ---------------------------------------------------------------------------
 int Graph::addVertex(const std::string& name, double x, double y)
 {
     if (count_ == capacity_) grow();
@@ -145,9 +137,9 @@ bool Graph::setBlocked(int u, int v, bool blocked)
     return true;
 }
 
-// ---------------------------------------------------------------------------
+
 //  Queries
-// ---------------------------------------------------------------------------
+
 bool Graph::hasEdge(int u, int v) const { return findEdge(u, v) != nullptr; }
 
 bool Graph::isBlocked(int u, int v) const
@@ -190,9 +182,7 @@ int Graph::degree(int v) const
     return d;
 }
 
-// ---------------------------------------------------------------------------
 //  Representations
-// ---------------------------------------------------------------------------
 
 // Adjacency MATRIX: matrix[i][j] = weight of edge i->j, or noEdgeValue.
 std::vector<std::vector<int> > Graph::adjacencyMatrix(int noEdgeValue) const
@@ -253,9 +243,7 @@ std::string Graph::adjacencyMatrixString() const
     return out.str();
 }
 
-// ---------------------------------------------------------------------------
 //  Visualizer export
-// ---------------------------------------------------------------------------
 GraphState Graph::exportState() const
 {
     GraphState state;

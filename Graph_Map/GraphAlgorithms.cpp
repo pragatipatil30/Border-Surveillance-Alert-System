@@ -1,15 +1,10 @@
-// ============================================================================
 //  person3/GraphAlgorithms.cpp
 //  Implementation of the graph algorithms (see GraphAlgorithms.h).
-// ============================================================================
 #include "GraphAlgorithms.h"
-
 namespace GraphAlgo
 {
 
-// ===========================================================================
 //  Private helpers
-// ===========================================================================
 namespace
 {
     std::string label(const Graph& g, int v)
@@ -117,9 +112,9 @@ namespace
     }
 }
 
-// ===========================================================================
+
 //  Traversals
-// ===========================================================================
+
 
 // BFS: visit the start, then all its neighbours, then their neighbours...
 // A queue holds the "frontier". O(V + E).
@@ -203,9 +198,9 @@ void dfsIterative(const Graph& g, int start, std::vector<int>& order, const Even
     }
 }
 
-// ===========================================================================
+
 //  Connectivity
-// ===========================================================================
+
 
 // Labels every vertex with its component number (0, 1, 2, ...). O(V + E).
 int connectedComponents(const Graph& g, std::vector<int>& labelOut)
@@ -282,9 +277,9 @@ PathResult fewestHops(const Graph& g, int source, int target, const EventCallbac
     return result;
 }
 
-// ===========================================================================
+
 //  Bipartite check (2-colouring with BFS)
-// ===========================================================================
+
 
 // A graph is bipartite if its vertices can be coloured with 2 colours so that
 // every edge joins different colours. Equivalent: it has no odd-length cycle.
@@ -331,9 +326,9 @@ bool isBipartite(const Graph& g, std::vector<int>& color, const EventCallback& l
     return true;
 }
 
-// ===========================================================================
+
 //  Cycle detection
-// ===========================================================================
+
 
 // Undirected graph, DFS based. Project use: find redundant or looping routes.
 bool hasCycle(const Graph& g, std::vector<int>* cycle, const EventCallback& log)
@@ -353,9 +348,9 @@ bool hasCycle(const Graph& g, std::vector<int>* cycle, const EventCallback& log)
     return false;
 }
 
-// ===========================================================================
+
 //  Dijkstra (array version, O(V^2))
-// ===========================================================================
+
 
 // Repeat: pick the unfinished vertex with the smallest known distance, finalize
 // it, then try to improve its neighbours ("relaxation"). Edge weights are > 0,
@@ -446,9 +441,9 @@ int nearestCandidate(const Graph& g, int target, const std::vector<int>& candida
     return bestIndex;
 }
 
-// ===========================================================================
+
 //  Prim's algorithm (array version, O(V^2))
-// ===========================================================================
+
 
 // Grow one tree from 'start'. Each round, add the vertex that is cheapest to
 // connect to the tree. key[v] = cheapest edge linking v to the tree so far.
@@ -501,9 +496,9 @@ MSTResult prim(const Graph& g, int start, const EventCallback& log)
     return result;
 }
 
-// ===========================================================================
+
 //  Kruskal's algorithm (O(E log E))
-// ===========================================================================
+
 
 // Sort all edges by weight, then take each edge unless it would close a cycle.
 // Union-Find answers "are these two ends already connected?" almost instantly.
