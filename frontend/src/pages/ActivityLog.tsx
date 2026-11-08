@@ -4,10 +4,10 @@ import { getDashboard } from '../services/api'
 import type { DashboardData } from '../types/dashboard'
 
 interface ActivityLogProps { dashboard: DashboardData | null; onNavigate: (page: string) => void }
-
 export function ActivityLog({ onNavigate }: Pick<ActivityLogProps, 'onNavigate'>) {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   useEffect(() => { getDashboard().then(({ data }) => setDashboard(data)) }, [])
+
   return <main className="dashboard-content">
     <header className="topbar"><div className="breadcrumb"><button className="breadcrumb-button" onClick={() => onNavigate('dashboard')}>COMMAND</button><ChevronRight size={13}/> ACTIVITY LOG</div><div className="topbar-actions"><div className="searchbox"><Search size={15}/><input placeholder="Search activity…"/></div><button className="notification-button" aria-label="Notifications"><Bell size={18}/><i>3</i></button><span className="topbar-divider"/><div className="connection"><Wifi size={15}/><span>System online</span><i/></div></div></header>
     <div className="welcome-row"><div><div className="eyebrow welcome-kicker">OPERATIONS · EVENT HISTORY</div><h1>Activity <em>log.</em></h1><p>Priority alerts and recent field activity in one place.</p></div><div className="activity-summary"><span><i/> LIVE FEED</span><strong>{(dashboard?.alerts.length ?? 0) + (dashboard?.activities.length ?? 0)}<small> events shown</small></strong></div></div>
@@ -18,4 +18,5 @@ export function ActivityLog({ onNavigate }: Pick<ActivityLogProps, 'onNavigate'>
     </div>}
     <footer className="page-footer"><span>Border Command Center <i>·</i> Northern Sector</span><span>SECURE CONNECTION <i className="footer-dot"/> ENCRYPTED</span></footer>
   </main>
+
 }

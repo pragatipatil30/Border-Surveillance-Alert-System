@@ -2,8 +2,8 @@ import { Activity, Bell, ChevronDown, Command, LayoutDashboard, LogOut, Map, Rad
 
 const nav = [
   { label: 'Dashboard', icon: LayoutDashboard, page: 'dashboard' },
-  { label: 'Live Surveillance', icon: Map }, { label: 'Records', icon: Users }, { label: 'Alerts', icon: Bell, count: '14' },
-  { label: 'Patrol Units', icon: Radio }, { label: 'DSA Laboratory', icon: Command }, { label: 'Activity Log', icon: Activity, page: 'activity' },
+  { label: 'Live Surveillance', icon: Map, page: 'surveillance' }, { label: 'Records', icon: Users, page: 'records' }, { label: 'Alerts', icon: Bell, count: '14', page: 'alerts' },
+  { label: 'Patrol Units', icon: Radio, page: 'patrol' }, { label: 'DSA Laboratory', icon: Command, page: 'dsa' }, { label: 'Activity Log', icon: Activity, page: 'activity' },
 ]
 
 interface SidebarProps { activePage: string; onNavigate: (page: string) => void }

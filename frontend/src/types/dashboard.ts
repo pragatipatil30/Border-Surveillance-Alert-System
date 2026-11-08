@@ -4,4 +4,5 @@ export interface Checkpoint { id: string; x: number; y: number; state: 'normal' 
 export interface Route { from: string; to: string; weight: number; blocked?: boolean }
 export interface Alert { id: string; title: string; checkpoint: string; time: string; threat: Threat }
 export interface Activity { id: string; name: string; checkpoint: string; threat: Threat; status: string; time: string }
-export interface DashboardData { metrics: Metric[]; checkpoints: Checkpoint[]; routes: Route[]; alerts: Alert[]; threatDistribution: { name: string; value: number; color: string }[]; activities: Activity[] }
+export interface PatrolUnit { id: string; checkpoint: string; status: 'Available' | 'On patrol' | 'Dispatched' | 'Offline'; assignment: string; updated: string }
+export interface DashboardData { metrics: Metric[]; checkpoints: Checkpoint[]; routes: Route[]; alerts: Alert[]; threatDistribution: { name: string; value: number; color: string }[]; activities: Activity[]; patrolUnits: PatrolUnit[] }

@@ -35,4 +35,10 @@ export const mockDashboard: DashboardData = {
     { id: 'IN-1046', name: 'Perimeter breach signal', checkpoint: 'CP-06 · River Bend', threat: 'MEDIUM', status: 'Monitoring', time: '09:28:45' },
     { id: 'IN-1045', name: 'Motion sensor alert', checkpoint: 'CP-02 · Cedar Post', threat: 'LOW', status: 'Resolved', time: '09:14:31' },
   ],
+  patrolUnits: [
+    { id: 'PATROL-04', checkpoint: 'CP-04 · West Ridge', status: 'Available', assignment: 'Standby', updated: '1 min ago' },
+    { id: 'PATROL-08', checkpoint: 'CP-08 · River Bend', status: 'On patrol', assignment: 'Sector sweep · Route B', updated: '3 min ago' },
+    { id: 'PATROL-02', checkpoint: 'CP-03 · East Pass', status: 'Dispatched', assignment: 'Responding to ALT-0247', updated: '8 min ago' },
+    { id: 'PATROL-11', checkpoint: 'Offline', status: 'Offline', assignment: 'Signal maintenance', updated: '26 min ago' },
+  ],
 }
