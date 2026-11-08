@@ -1,51 +1,46 @@
 #include <iostream>
-#include "Sorting.h"
+#include "Searching.h"
 
 using namespace std;
 
 int main()
 {
-    // Sample intruder records
+    // Intruder records sorted by ID
     Intruder records[5] = {
-        {105, "Rahul", "North", 2},
-        {102, "Amit", "East", 4},
-        {104, "Sneha", "West", 1},
         {101, "Priya", "South", 5},
-        {103, "Karan", "North", 3}
+        {102, "Amit", "East", 4},
+        {103, "Karan", "North", 3},
+        {104, "Sneha", "West", 1},
+        {105, "Rahul", "North", 2}
     };
 
     int size = 5;
+    int searchID = 104;
 
-    // Statistics
-    SortStats stats;
+    SearchStats linearStats;
+    SearchStats binaryStats;
 
-    // Display before sorting
-    cout << "Before Sorting:\n";
+    // Linear Search
+    int linearResult =
+        linearSearch(records, size, searchID, linearStats);
 
-    for (int i = 0; i < size; i++)
-    {
-        cout << records[i].id << " "
-             << records[i].name << " "
-             << records[i].threatlevel << endl;
-    }
+    // Binary Search
+    int binaryResult =
+        binarySearch(records, size, searchID, binaryStats);
 
-    // Apply Bubble Sort by ID
-    insertionSortIntruders(records, size, BY_ID, stats);
+    cout << "Searching for Intruder ID: " << searchID << endl;
 
-    // Display after sorting
-    cout << "\nAfter Bubble Sort:\n";
+    cout << "\nLinear Search";
+    cout << "\nIndex: " << linearResult;
+    cout << "\nComparisons: " << linearStats.comparisons;
+    cout << "\nExecution Time: "
+         << linearStats.executionTime << " ms\n";
 
-    for (int i = 0; i < size; i++)
-    {
-        cout << records[i].id << " "
-             << records[i].name << " "
-             << records[i].threatlevel << endl;
-    }
-
-    // Display statistics
-    cout << "\nComparisons: " << stats.comparisons;
-    cout << "\nPasses: " << stats.passes;
-    cout << "\nExecution Time: " << stats.executionTime << " ms\n";
+    cout << "\nBinary Search";
+    cout << "\nIndex: " << binaryResult;
+    cout << "\nComparisons: " << binaryStats.comparisons;
+    cout << "\nExecution Time: "
+         << binaryStats.executionTime << " ms\n";
 
     return 0;
 }

@@ -6,7 +6,7 @@ using namespace std;
 using namespace chrono;
 
 // Compare two intruder records using the selected criterion
-bool isGreater(Intruder a, Intruder b, SortCriteria criteria)
+static bool isGreater(Intruder a, Intruder b, SortCriteria criteria)
 {
     switch (criteria)
     {
@@ -27,7 +27,7 @@ bool isGreater(Intruder a, Intruder b, SortCriteria criteria)
 }
 
 // Swap two intruder records
-void swapIntruders(Intruder &a, Intruder &b)
+static void swapIntruders(Intruder &a, Intruder &b)
 {
     Intruder temp = a;
     a = b;
@@ -95,41 +95,37 @@ void insertionSortIntruders(Intruder arr[], int size,
 }
 
 // Merge helper function
-void merge(Intruder arr[], int left, int mid, int right,
+static void merge(Intruder arr[], int left, int mid, int right,
            SortCriteria criteria, SortStats &stats)
 {
     int n1 = mid - left + 1;
     int n2 = right - mid;
-
-    Intruder L[100], R[100];
-
+    // Dynamically allocate temporary arrays
+    Intruder *L = new Intruder[n1];
+    Intruder *R = new Intruder[n2];
     for (int i = 0; i < n1; i++)
         L[i] = arr[left + i];
-
     for (int j = 0; j < n2; j++)
         R[j] = arr[mid + 1 + j];
-
     int i = 0, j = 0, k = left;
-
     while (i < n1 && j < n2)
     {
         stats.comparisons++;
-
         if (!isGreater(L[i], R[j], criteria))
             arr[k++] = L[i++];
         else
             arr[k++] = R[j++];
     }
-
     while (i < n1)
         arr[k++] = L[i++];
-
     while (j < n2)
         arr[k++] = R[j++];
+    // Free allocated memory
+    delete[] L;
+    delete[] R;
 }
-
 // Merge Sort helper
-void mergeSortHelper(Intruder arr[], int left, int right,
+static void mergeSortHelper(Intruder arr[], int left, int right,
                      SortCriteria criteria, SortStats &stats)
 {
     if (left < right)
@@ -160,7 +156,7 @@ void mergeSortIntruders(Intruder arr[], int left, int right,
 }
 
 // Quick Sort partition
-int partitionIntruders(Intruder arr[], int low, int high,
+static int partitionIntruders(Intruder arr[], int low, int high,
                        SortCriteria criteria, SortStats &stats)
 {
     Intruder pivot = arr[high];
@@ -183,7 +179,7 @@ int partitionIntruders(Intruder arr[], int low, int high,
 }
 
 // Quick Sort helper
-void quickSortHelper(Intruder arr[], int low, int high,
+static void quickSortHelper(Intruder arr[], int low, int high,
                      SortCriteria criteria, SortStats &stats)
 {
     if (low < high)
