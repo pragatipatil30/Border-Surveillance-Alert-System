@@ -20,6 +20,8 @@ private:
 public:
     DoublyLinkedList();
     ~DoublyLinkedList();
+    DoublyLinkedList(const DoublyLinkedList &) = delete;
+    DoublyLinkedList &operator=(const DoublyLinkedList &) = delete;
 
     void insert(Intruder record);
     bool remove(int id);

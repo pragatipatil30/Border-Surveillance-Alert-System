@@ -20,7 +20,8 @@ private:
 public:
     SparseMatrix(int totalRows, int totalCols);
     ~SparseMatrix();
-
+    SparseMatrix(const SparseMatrix &) = delete;
+    SparseMatrix &operator=(const SparseMatrix &) = delete;
     void insert(int row, int col, int value);
     int getValue(int row, int col) const;
     bool remove(int row, int col);
@@ -29,7 +30,7 @@ public:
     int getCols() const;
     int size() const;
     bool isEmpty() const;
-
+    // Caller must release the returned array using delete[].
     SparseEntry *exportState() const;
 };
 

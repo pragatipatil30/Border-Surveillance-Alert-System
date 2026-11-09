@@ -21,6 +21,8 @@ private:
 public:
     explicit HashChaining(int tableSize);
     ~HashChaining();
+    HashChaining(const HashChaining &) = delete;
+    HashChaining &operator=(const HashChaining &) = delete;
 
     bool insert(Intruder record);
     bool remove(int id);

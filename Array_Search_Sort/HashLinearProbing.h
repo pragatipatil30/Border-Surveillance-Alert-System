@@ -22,6 +22,8 @@ private:
 public:
     explicit HashLinearProbing(int tableSize);
     ~HashLinearProbing();
+    HashLinearProbing(const HashLinearProbing &) = delete;
+    HashLinearProbing &operator=(const HashLinearProbing &) = delete;
 
     bool insert(Intruder record);
     bool remove(int id);

@@ -1,12 +1,10 @@
 #include "Sorting.h"
 #include <string>
 #include <chrono>
-
 using namespace std;
 using namespace chrono;
-
 // Compare two intruder records using the selected criterion
-static bool isGreater(Intruder a, Intruder b, SortCriteria criteria)
+static bool isGreater(const Intruder &a, const Intruder &b, SortCriteria criteria)
 {
     switch (criteria)
     {
@@ -39,19 +37,31 @@ void bubbleSortIntruders(Intruder arr[], int size,
                          SortCriteria criteria, SortStats &stats)
 {
     stats = SortStats{};
+
+    if (arr == nullptr || size <= 1)
+        return;
+
     auto start = high_resolution_clock::now();
 
     for (int i = 0; i < size - 1; i++)
     {
         stats.passes++;
+        bool swapped = false;
 
         for (int j = 0; j < size - i - 1; j++)
         {
             stats.comparisons++;
 
             if (isGreater(arr[j], arr[j + 1], criteria))
+            {
                 swapIntruders(arr[j], arr[j + 1]);
+                swapped = true;
+            }
         }
+
+        // Stop if no swaps occurred in this pass
+        if (!swapped)
+            break;
     }
 
     auto end = high_resolution_clock::now();
@@ -64,6 +74,10 @@ void insertionSortIntruders(Intruder arr[], int size,
                             SortCriteria criteria, SortStats &stats)
 {
     stats = SortStats{};
+
+    if (arr == nullptr || size <= 1)
+        return;
+
     auto start = high_resolution_clock::now();
 
     for (int i = 1; i < size; i++)
@@ -96,37 +110,47 @@ void insertionSortIntruders(Intruder arr[], int size,
 
 // Merge helper function
 static void merge(Intruder arr[], int left, int mid, int right,
-           SortCriteria criteria, SortStats &stats)
+                  SortCriteria criteria, SortStats &stats)
 {
     int n1 = mid - left + 1;
     int n2 = right - mid;
+
     // Dynamically allocate temporary arrays
     Intruder *L = new Intruder[n1];
     Intruder *R = new Intruder[n2];
+
     for (int i = 0; i < n1; i++)
         L[i] = arr[left + i];
+
     for (int j = 0; j < n2; j++)
         R[j] = arr[mid + 1 + j];
+
     int i = 0, j = 0, k = left;
+
     while (i < n1 && j < n2)
     {
         stats.comparisons++;
+
         if (!isGreater(L[i], R[j], criteria))
             arr[k++] = L[i++];
         else
             arr[k++] = R[j++];
     }
+
     while (i < n1)
         arr[k++] = L[i++];
+
     while (j < n2)
         arr[k++] = R[j++];
+
     // Free allocated memory
     delete[] L;
     delete[] R;
 }
+
 // Merge Sort helper
 static void mergeSortHelper(Intruder arr[], int left, int right,
-                     SortCriteria criteria, SortStats &stats)
+                            SortCriteria criteria, SortStats &stats)
 {
     if (left < right)
     {
@@ -146,6 +170,10 @@ void mergeSortIntruders(Intruder arr[], int left, int right,
                         SortCriteria criteria, SortStats &stats)
 {
     stats = SortStats{};
+
+    if (arr == nullptr || left < 0 || right < left)
+        return;
+
     auto start = high_resolution_clock::now();
 
     mergeSortHelper(arr, left, right, criteria, stats);
@@ -157,8 +185,10 @@ void mergeSortIntruders(Intruder arr[], int left, int right,
 
 // Quick Sort partition
 static int partitionIntruders(Intruder arr[], int low, int high,
-                       SortCriteria criteria, SortStats &stats)
+                              SortCriteria criteria, SortStats &stats)
 {
+    int mid = low + (high - low) / 2;
+    swapIntruders(arr[mid], arr[high]);
     Intruder pivot = arr[high];
     int i = low - 1;
 
@@ -180,7 +210,7 @@ static int partitionIntruders(Intruder arr[], int low, int high,
 
 // Quick Sort helper
 static void quickSortHelper(Intruder arr[], int low, int high,
-                     SortCriteria criteria, SortStats &stats)
+                            SortCriteria criteria, SortStats &stats)
 {
     if (low < high)
     {
@@ -198,6 +228,10 @@ void quickSortIntruders(Intruder arr[], int low, int high,
                         SortCriteria criteria, SortStats &stats)
 {
     stats = SortStats{};
+
+    if (arr == nullptr || low < 0 || high < low)
+        return;
+
     auto start = high_resolution_clock::now();
 
     quickSortHelper(arr, low, high, criteria, stats);

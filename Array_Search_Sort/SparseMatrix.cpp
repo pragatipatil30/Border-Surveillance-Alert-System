@@ -3,8 +3,8 @@
 // Constructor
 SparseMatrix::SparseMatrix(int totalRows, int totalCols)
 {
-    rows = totalRows;
-    cols = totalCols;
+    rows = (totalRows > 0) ? totalRows : 0;
+    cols = (totalCols > 0) ? totalCols : 0;
 
     capacity = 10;
     count = 0;
@@ -83,6 +83,8 @@ int SparseMatrix::getValue(int row, int col) const
 // Remove an element
 bool SparseMatrix::remove(int row, int col)
 {
+    if (row < 0 || row >= rows || col < 0 || col >= cols)
+        return false;
     for (int i = 0; i < count; i++)
     {
         if (entries[i].row == row && entries[i].col == col)
@@ -94,10 +96,8 @@ bool SparseMatrix::remove(int row, int col)
             return true;
         }
     }
-
     return false;
 }
-
 // Get number of rows
 int SparseMatrix::getRows() const
 {

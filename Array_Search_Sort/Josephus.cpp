@@ -37,7 +37,8 @@ JosephusResult solveJosephus(int n, int k)
     while (remaining > 1)
     {
         // Move k - 1 steps to reach the person to eliminate.
-        for (int step = 1; step < k; step++)
+        int steps = (k-1) % remaining;
+        for (int step = 0; step < steps; step++)
             current = current->next;
 
         Node *removed = current->next;

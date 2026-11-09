@@ -18,7 +18,8 @@ private:
 public:
     CircularLinkedList();
     ~CircularLinkedList();
-
+    CircularLinkedList(const CircularLinkedList &) = delete;
+    CircularLinkedList &operator=(const CircularLinkedList &) = delete;
     void insert(Intruder record);
     bool remove(int id);
     const Intruder *search(int id) const;

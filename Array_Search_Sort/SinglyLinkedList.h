@@ -18,6 +18,9 @@ private:
 public:
     SinglyLinkedList();
     ~SinglyLinkedList();
+    SinglyLinkedList(const SinglyLinkedList &) = delete;
+    SinglyLinkedList &operator=(const SinglyLinkedList &) = delete;
+
 
     void insert(Intruder record);
     bool remove(int id);
