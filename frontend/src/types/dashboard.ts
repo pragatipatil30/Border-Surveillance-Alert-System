@@ -8,4 +8,5 @@ export interface PatrolUnit { id: string; checkpoint: string; status: 'Available
 export interface DashboardData { metrics: Metric[]; checkpoints: Checkpoint[]; routes: Route[]; alerts: Alert[]; threatDistribution: { name: string; value: number; color: string }[]; activities: Activity[]; patrolUnits: PatrolUnit[] }
 export interface IntruderRecord { id: string; name: string; location: string; threatLevel: number }
 export interface DashboardSummary { totalIntruders: number; highThreatIntruders: number; threatLevelCounts: number[]; activeAlerts: number | null; availablePatrolUnits: number | null }
+export interface OperationalGraph { directed: boolean; vertices: { id: number; name: string; x: number; y: number }[]; edges: { from: number; to: number; weight: number; blocked: boolean }[] }
 export type BackendStatus = 'connected' | 'disconnected' | 'checking'

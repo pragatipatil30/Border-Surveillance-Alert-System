@@ -3,8 +3,8 @@ import { Activity, AlertTriangle, Bell, Check, ChevronRight, Clock3, Command, Cr
 import { BorderMap } from '../components/dashboard/BorderMap'
 import { ConnectionStatus } from '../components/layout/ConnectionStatus'
 import { useBackendStatus } from '../services/BackendStatusContext'
-import { API_BASE, getDashboard, getRecords } from '../services/api'
-import type { Checkpoint, DashboardData, IntruderRecord, Threat } from '../types/dashboard'
+import { API_BASE, getAlerts, getOperationalGraph, getPatrolUnits, getRecords } from '../services/api'
+import type { Alert, Checkpoint, IntruderRecord, OperationalGraph, PatrolUnit, Threat } from '../types/dashboard'
 
 type Page = 'surveillance' | 'records' | 'alerts' | 'patrol' | 'dsa' | 'settings'
 const pageTitles: Record<Page, { eyebrow: string; title: string; description: string }> = {
@@ -24,22 +24,40 @@ function PageHeader({ page, onNavigate }: { page: Page; onNavigate: (page: strin
 function DemoTag() { return <span className="demo-inline">DEMO DATA</span> }
 
 export function WorkspacePage({ page, onNavigate }: { page: Page; onNavigate: (page: string) => void }) {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null)
-  useEffect(() => { getDashboard().then(({ data }) => setDashboard(data)) }, [])
-  return <main className="dashboard-content"><PageHeader page={page} onNavigate={onNavigate}/>{!dashboard ? <div className="loading-card">Establishing command link<span className="loading-pulse"/></div> : <>
-    {page === 'surveillance' && <SurveillancePage data={dashboard}/>}
-    {page === 'records' && <RecordsPage/>}
-    {page === 'alerts' && <AlertsPage data={dashboard}/>}
-    {page === 'patrol' && <PatrolPage data={dashboard}/>}
-    {page === 'dsa' && <DsaPage/>}
-    {page === 'settings' && <SettingsPage/>}
-    </>}<footer className="page-footer"><span>Border Command Center <i>·</i> Development view</span><span>DATA SHOWN AS LABELED</span></footer></main>
+  return <main className="dashboard-content"><PageHeader page={page} onNavigate={onNavigate}/>{
+    page === 'surveillance' ? <SurveillancePage/> :
+    page === 'records' ? <RecordsPage/> :
+    page === 'alerts' ? <AlertsPage/> :
+    page === 'patrol' ? <PatrolPage/> :
+    page === 'dsa' ? <DsaPage/> : <SettingsPage/>
+  }<footer className="page-footer"><span>Border Command Center <i>·</i> Development view</span><span>DATA SHOWN AS LABELED</span></footer></main>
 }
 
-function SurveillancePage({ data }: { data: DashboardData }) {
-  const [selected, setSelected] = useState<Checkpoint | null>(data.checkpoints.find((p) => p.state === 'selected') ?? null)
-  const activeCount = data.checkpoints.filter((p) => p.state === 'alert').length
-  return <div className="workspace-stack"><div className="workspace-kpis"><Stat label="CHECKPOINTS" value={String(data.checkpoints.length)} icon={<Crosshair/>}/><Stat label="ACTIVE INCIDENTS" value={String(activeCount)} icon={<ShieldAlert/>}/><Stat label="ROUTE EDGES" value={String(data.routes.length)} icon={<GitBranch/>}/><Stat label="UNITS ON FIELD" value={String(data.patrolUnits.filter((p) => p.status !== 'Offline').length)} icon={<Radio/>}/></div><div className="surveillance-layout"><div onClick={(event) => { const target = (event.target as HTMLElement).closest('.checkpoint'); if (!target) return; setSelected(data.checkpoints.find((p) => p.id === target.querySelector('.node-label')?.textContent) ?? selected) }}><BorderMap checkpoints={data.checkpoints} routes={data.routes}/></div><section className="panel detail-panel"><div className="panel-heading"><div><div className="eyebrow">SELECTED POST</div><h2>{selected?.id ?? 'Checkpoint'}</h2></div><LocateFixed size={16}/></div>{selected ? <><div className="checkpoint-status"><i className={selected.state === 'alert' ? 'is-alert' : ''}/>{selected.state === 'alert' ? 'Incident detected' : 'Operational'}</div><div className="detail-coordinate">Map position · x {selected.x.toFixed(0)}, y {selected.y.toFixed(0)}</div><div className="detail-divider"/><div className="detail-label">CONNECTED POSTS</div><div className="connected-posts">{data.routes.filter((r) => r.from === selected.id || r.to === selected.id).map((r) => { const id = r.from === selected.id ? r.to : r.from; return <span key={id}>{id}<small>weight {r.weight}</small></span> })}</div><div className="detail-divider"/><div className="detail-label">RECENT INCIDENTS</div>{data.alerts.filter((a) => a.checkpoint.includes(selected.id)).slice(0, 2).map((a) => <div className="mini-event" key={a.id}><ShieldAlert size={14}/><span>{a.title}<small>{a.time}</small></span></div>)}{!data.alerts.some((a) => a.checkpoint.includes(selected.id)) && <p className="muted-copy">No recent incidents at this post.</p>}</> : <p className="muted-copy">Select a checkpoint on the map.</p>}</section></div><div className="workspace-note"><Radio size={15}/><span>Map points and routes are sample values. The C++ graph exports checkpoint coordinates and blocked route state; a backend endpoint is not connected.</span><DemoTag/></div></div>
+function SurveillancePage() {
+  const [graph, setGraph] = useState<OperationalGraph | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  useEffect(() => { let active = true; getOperationalGraph().then((value) => { if (active) { setGraph(value); setSelectedId(value.vertices[0]?.id ?? null) } }).catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Could not load the checkpoint graph.') }).finally(() => { if (active) setLoading(false) }); return () => { active = false } }, [])
+  if (loading) return <div className="loading-card">Loading checkpoint graph<span className="loading-pulse"/></div>
+  if (error || !graph) return <UnavailableFeature title="Live surveillance data is unavailable" message={error || 'The C++ backend returned no graph data.'} endpoint="GET /api/graph"/>
+  const xValues = graph.vertices.map((vertex) => vertex.x)
+  const yValues = graph.vertices.map((vertex) => vertex.y)
+  const position = (value: number, values: number[]) => {
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    return max === min ? 50 : 5 + ((value - min) / (max - min)) * 90
+  }
+  const points: Checkpoint[] = graph.vertices.map((vertex) => ({ id: vertex.name || String(vertex.id), x: position(vertex.x, xValues), y: position(vertex.y, yValues), state: 'normal' }))
+  const ids = new Map(graph.vertices.map((vertex) => [vertex.id, vertex.name || String(vertex.id)]))
+  const routes = graph.edges.map((edge) => ({ from: ids.get(edge.from) ?? String(edge.from), to: ids.get(edge.to) ?? String(edge.to), weight: edge.weight, blocked: edge.blocked }))
+  const selectedVertex = graph.vertices.find((vertex) => vertex.id === selectedId) ?? null
+  const selectedName = selectedVertex?.name || (selectedVertex ? String(selectedVertex.id) : '')
+  return <div className="workspace-stack"><div className="workspace-kpis"><Stat label="CHECKPOINTS" value={String(points.length)} icon={<Crosshair/>}/><Stat label="ACTIVE INCIDENTS" value="—" icon={<ShieldAlert/>}/><Stat label="ROUTE EDGES" value={String(routes.length)} icon={<GitBranch/>}/><Stat label="UNITS ON FIELD" value="—" icon={<Radio/>}/></div><div className="surveillance-layout"><div onClick={(event) => { const target = (event.target as HTMLElement).closest('.checkpoint'); if (!target) return; const pointName = target.querySelector('.node-label')?.textContent; const vertex = graph.vertices.find((item) => (item.name || String(item.id)) === pointName); if (vertex) setSelectedId(vertex.id) }}><BorderMap checkpoints={points} routes={routes} live/></div><section className="panel detail-panel"><div className="panel-heading"><div><div className="eyebrow">SELECTED CHECKPOINT</div><h2>{selectedName || 'Checkpoint'}</h2></div><LocateFixed size={16}/></div>{selectedVertex ? <><div className="checkpoint-status"><i/>Graph node</div><div className="detail-coordinate">Map position · x {selectedVertex.x}, y {selectedVertex.y}</div><div className="detail-divider"/><div className="detail-label">CONNECTED POSTS</div><div className="connected-posts">{routes.filter((route) => route.from === selectedName || route.to === selectedName).map((route) => { const name = route.from === selectedName ? route.to : route.from; return <span key={name}>{name}<small>{route.blocked ? 'route blocked' : `${route.weight} km`}</small></span> })}</div></> : <p className="muted-copy">Select a checkpoint on the graph.</p>}</section></div>{points.length === 0 && <div className="workspace-note"><Radio size={15}/><span>The graph endpoint is connected, but the C++ application currently has no checkpoint graph initialized.</span></div>}</div>
+}
+
+function UnavailableFeature({ title, message, endpoint }: { title: string; message: string; endpoint: string }) {
+  return <section className="panel settings-card"><div className="settings-heading"><div><div className="eyebrow">C++ BACKEND RESPONSE</div><h2>{title}</h2></div><span className="demo-inline">NOT AVAILABLE</span></div><div className="workspace-note"><AlertTriangle size={15}/><span>{message}</span></div><div className="setting-row endpoint-row"><div><strong>Requested endpoint</strong><span>This page does not substitute sample data for a failed API response.</span></div><code>{endpoint}</code></div></section>
 }
 
 function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) { return <div className="panel workspace-stat"><span>{label}</span><strong>{value}</strong><i>{icon}</i></div> }
@@ -64,15 +82,26 @@ function RecordsPage() {
 function ThreatLabel({ threat }: { threat: Threat }) { return <span className={`table-threat threat-${threat.toLowerCase()}`}><i/>{threat}</span> }
 function threatCategory(level: number): Threat { return level >= 4 ? 'HIGH' : level === 3 ? 'MEDIUM' : 'LOW' }
 
-function AlertsPage({ data }: { data: DashboardData }) {
+function AlertsPage() {
   const [filter, setFilter] = useState('ALL')
-  const [alerts, setAlerts] = useState(data.alerts)
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  useEffect(() => { let active = true; getAlerts().then((items) => { if (active) setAlerts(items) }).catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Could not load backend alerts.') }).finally(() => { if (active) setLoading(false) }); return () => { active = false } }, [])
+  if (loading) return <div className="loading-card">Loading alerts<span className="loading-pulse"/></div>
+  if (error) return <UnavailableFeature title="Alert queue is unavailable" message={error} endpoint="GET /api/alerts"/>
   const shown = alerts.filter((alert) => filter === 'ALL' || alert.threat === filter)
-  return <div className="workspace-stack"><div className="filter-strip">{['ALL', 'HIGH', 'MEDIUM', 'LOW'].map((f) => <button key={f} className={filter === f ? 'filter-active' : ''} onClick={() => setFilter(f)}>{f}<span>{f === 'ALL' ? alerts.length : alerts.filter((a) => a.threat === f).length}</span></button>)}<DemoTag/></div><section className="panel alerts-page-panel"><div className="alerts-page-title"><div><div className="eyebrow">SAMPLE QUEUE ORDER</div><h2>Open alert queue</h2></div><span className="queue-state"><i/> Demo data</span></div>{shown.map((alert) => <div className="alert-row alert-page-row" key={alert.id}><div className={`alert-icon alert-${alert.threat.toLowerCase()}`}><ShieldAlert size={15}/></div><div className="alert-main"><div className="alert-title">{alert.title}</div><div className="alert-meta"><span>{alert.id}</span><i/><span>{alert.checkpoint}</span><i/><span>{alert.time}</span></div></div><ThreatLabel threat={alert.threat}/><span className="status-text">{alert.status ?? 'Pending'}</span></div>)}{shown.length === 0 && <div className="empty-state">No alerts at this level.</div>}<div className="workspace-note"><AlertTriangle size={14}/><span>Alert data is a development sample. The checked-in C++ code does not yet expose an alert dispatch endpoint.</span><DemoTag/></div></section></div>
+  return <div className="workspace-stack"><div className="filter-strip">{['ALL', 'HIGH', 'MEDIUM', 'LOW'].map((f) => <button key={f} className={filter === f ? 'filter-active' : ''} onClick={() => setFilter(f)}>{f}<span>{f === 'ALL' ? alerts.length : alerts.filter((a) => a.threat === f).length}</span></button>)}<span className="demo-inline">C++ ALERT QUEUE</span></div><section className="panel alerts-page-panel"><div className="alerts-page-title"><div><div className="eyebrow">BACKEND PRIORITY ORDER</div><h2>Open alert queue</h2></div><span className="queue-state"><i/> Backend</span></div>{shown.map((alert) => <div className="alert-row alert-page-row" key={alert.id}><div className={`alert-icon alert-${alert.threat.toLowerCase()}`}><ShieldAlert size={15}/></div><div className="alert-main"><div className="alert-title">{alert.title}</div><div className="alert-meta"><span>{alert.id}</span><i/><span>{alert.checkpoint}</span><i/><span>{alert.time}</span></div></div><ThreatLabel threat={alert.threat}/><span className="status-text">{alert.status ?? 'Pending'}</span></div>)}{shown.length === 0 && <div className="empty-state">The C++ backend returned no alerts.</div>}</section></div>
 }
 
-function PatrolPage({ data }: { data: DashboardData }) {
-  return <div className="workspace-stack"><div className="unit-grid">{data.patrolUnits.map((unit) => <article className="panel unit-card" key={unit.id}><div className="unit-card-head"><div className="unit-icon"><Radio size={17}/></div><span className={`unit-status status-${unit.status.toLowerCase().replace(' ', '-')}`}><i/>{unit.status}</span></div><h2>{unit.id}</h2><div className="unit-location"><LocateFixed size={13}/>{unit.checkpoint}</div><div className="unit-assignment"><span>ASSIGNMENT</span><strong>{unit.assignment}</strong></div><div className="unit-updated"><Clock3 size={12}/>Updated {unit.updated}</div></article>)}</div><div className="workspace-note"><Radio size={15}/><span>Unit list is development sample data. Patrol unit operations are not currently exposed by the C++ console program.</span><DemoTag/></div></div>
+function PatrolPage() {
+  const [units, setUnits] = useState<PatrolUnit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  useEffect(() => { let active = true; getPatrolUnits().then((items) => { if (active) setUnits(items) }).catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Could not load patrol units.') }).finally(() => { if (active) setLoading(false) }); return () => { active = false } }, [])
+  if (loading) return <div className="loading-card">Loading patrol units<span className="loading-pulse"/></div>
+  if (error) return <UnavailableFeature title="Patrol unit data is unavailable" message={error} endpoint="GET /api/patrol-units"/>
+  return <div className="workspace-stack"><div className="unit-grid">{units.map((unit) => <article className="panel unit-card" key={unit.id}><div className="unit-card-head"><div className="unit-icon"><Radio size={17}/></div><span className={`unit-status status-${unit.status.toLowerCase().replace(' ', '-')}`}><i/>{unit.status}</span></div><h2>{unit.id}</h2><div className="unit-location"><LocateFixed size={13}/>{unit.checkpoint}</div><div className="unit-assignment"><span>ASSIGNMENT</span><strong>{unit.assignment}</strong></div><div className="unit-updated"><Clock3 size={12}/>Updated {unit.updated}</div></article>)}</div>{units.length === 0 && <div className="workspace-note"><Radio size={15}/><span>The C++ backend returned no patrol units.</span></div>}</div>
 }
 
 function DsaPage() {
@@ -93,5 +122,5 @@ function SettingsPage() {
   const { status } = useBackendStatus()
   const [compact, setCompact] = useState(false)
   const [notifications, setNotifications] = useState(true)
-  return <div className="settings-layout"><section className="panel settings-card"><div className="settings-heading"><div><div className="eyebrow">OPERATOR PROFILE</div><h2>Account</h2></div></div><div className="profile-row"><div className="avatar profile-avatar">A</div><div><strong>Admin</strong><span>Administrator · Local demo session</span></div><span className="profile-chip">ACTIVE</span></div><div className="settings-divider"/><div className="setting-row"><div><strong>Compact dashboard</strong><span>Use tighter spacing on smaller displays.</span></div><button className={`toggle ${compact ? 'on' : ''}`} onClick={() => setCompact(!compact)} aria-pressed={compact}><i/></button></div><div className="setting-row"><div><strong>Operational notifications</strong><span>Show alert badges and event indicators.</span></div><button className={`toggle ${notifications ? 'on' : ''}`} onClick={() => setNotifications(!notifications)} aria-pressed={notifications}><i/></button></div></section><section className="panel settings-card"><div className="settings-heading"><div><div className="eyebrow">CONNECTIVITY</div><h2>Backend status</h2></div><span className="demo-inline">DEVELOPMENT</span></div><div className={`backend-status backend-${status}`}><span className="backend-icon"><Wifi size={18}/></span><div><strong>{status === 'connected' ? 'Backend connected' : status === 'checking' ? 'Checking backend connection' : 'Backend disconnected'}</strong><span>Dashboard sample data remains separate from connection status.</span></div><i/></div><div className="setting-row endpoint-row"><div><strong>Health endpoint</strong><span>Configured API base + /health</span></div><code>{API_BASE}/health</code></div><div className="workspace-note"><Check size={14}/><span>Health check is implemented; dashboard and operational data routes are not yet available.</span></div></section></div>
+  return <div className="settings-layout"><section className="panel settings-card"><div className="settings-heading"><div><div className="eyebrow">OPERATOR PROFILE</div><h2>Account</h2></div></div><div className="profile-row"><div className="avatar profile-avatar">A</div><div><strong>Admin</strong><span>Administrator · Local demo session</span></div><span className="profile-chip">ACTIVE</span></div><div className="settings-divider"/><div className="setting-row"><div><strong>Compact dashboard</strong><span>Use tighter spacing on smaller displays.</span></div><button className={`toggle ${compact ? 'on' : ''}`} onClick={() => setCompact(!compact)} aria-pressed={compact}><i/></button></div><div className="setting-row"><div><strong>Operational notifications</strong><span>Show alert badges and event indicators.</span></div><button className={`toggle ${notifications ? 'on' : ''}`} onClick={() => setNotifications(!notifications)} aria-pressed={notifications}><i/></button></div></section><section className="panel settings-card"><div className="settings-heading"><div><div className="eyebrow">CONNECTIVITY</div><h2>Backend status</h2></div><span className="demo-inline">DEVELOPMENT</span></div><div className={`backend-status backend-${status}`}><span className="backend-icon"><Wifi size={18}/></span><div><strong>{status === 'connected' ? 'Backend connected' : status === 'checking' ? 'Checking backend connection' : 'Backend disconnected'}</strong><span>Records and dashboard statistics use the C++ API; unsupported operational modules stay unavailable.</span></div><i/></div><div className="setting-row endpoint-row"><div><strong>Health endpoint</strong><span>Configured API base + /health</span></div><code>{API_BASE}/health</code></div><div className="workspace-note"><Check size={14}/><span>Health, dashboard and record endpoints are implemented. Graph, alert and patrol routes return an explicit not implemented response until their C++ runtime data is added.</span></div></section></div>
 }

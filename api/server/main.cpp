@@ -13,6 +13,7 @@
 #include "api/routes/system_routes.hpp"
 #include "api/routes/dashboard_routes.hpp"
 #include "api/routes/records_routes.hpp"
+#include "api/routes/operational_routes.hpp"
 
 namespace {
 
@@ -66,6 +67,7 @@ int main()
         border_api::routes::registerHealthRoutes(app);
         border_api::routes::registerDashboardRoutes(app);
         border_api::routes::registerRecordsRoutes(app);
+        border_api::routes::registerOperationalRoutes(app);
 
         CROW_ROUTE(app, "/api/<path>")
             .methods(crow::HTTPMethod::Get, crow::HTTPMethod::Post,

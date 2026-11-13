@@ -16,11 +16,14 @@ void registerSystemRoutes(HttpApp& app)
 
         crow::json::wvalue data;
         data["service"] = "border-command-center-api";
-        data["phase"] = "2";
-        data["availableEndpoints"] = crow::json::wvalue::list({
+        data["phase"] = "3";
+        data["implementedEndpoints"] = crow::json::wvalue::list({
             "/api/health", "/api/dashboard", "/api/records"
         });
-        return successResponse(std::move(data), "API data endpoints are running");
+        data["notImplementedEndpoints"] = crow::json::wvalue::list({
+            "/api/graph", "/api/alerts", "/api/patrol-units"
+        });
+        return successResponse(std::move(data), "API endpoint status");
     });
 }
 

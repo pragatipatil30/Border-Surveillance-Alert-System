@@ -26,6 +26,7 @@ add_executable(border_api
   server/routes/health_routes.cpp
   server/routes/dashboard_routes.cpp
   server/routes/records_routes.cpp
+  server/routes/operational_routes.cpp
   server/services/intruder_repository.cpp
 )
 target_compile_features(border_api PRIVATE cxx_std_17)

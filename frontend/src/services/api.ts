@@ -1,7 +1,7 @@
 import { mockDashboard } from './mockApi'
 import type { ApiEnvelope, ApiFailure } from '../types/api'
 import { ApiError } from '../types/api'
-import type { DashboardData, DashboardSummary, IntruderRecord } from '../types/dashboard'
+import type { Alert, DashboardData, DashboardSummary, IntruderRecord, OperationalGraph, PatrolUnit } from '../types/dashboard'
 
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:18080/api').replace(/\/$/, '')
 
@@ -71,6 +71,20 @@ export async function getDashboard(): Promise<{ data: DashboardData; demo: boole
 export async function getRecords(): Promise<IntruderRecord[]> {
   const response = await apiRequest<{ records: IntruderRecord[]; count: number }>('/records')
   return response.records
+}
+
+export async function getOperationalGraph(): Promise<OperationalGraph> {
+  return apiRequest<OperationalGraph>('/graph')
+}
+
+export async function getAlerts(): Promise<Alert[]> {
+  const response = await apiRequest<{ alerts: Alert[] }>('/alerts')
+  return response.alerts
+}
+
+export async function getPatrolUnits(): Promise<PatrolUnit[]> {
+  const response = await apiRequest<{ patrolUnits: PatrolUnit[] }>('/patrol-units')
+  return response.patrolUnits
 }
 
 export async function dispatchAlert(alertId: string): Promise<{ dispatched: boolean; demo: boolean }> {

@@ -20,3 +20,4 @@
 
 html{font-variant-numeric:lining-nums tabular-nums}
 .weight-label-bg{fill:#081720d9;stroke:#d9b77a55;stroke-width:.8}.route-distance{stroke:none;paint-order:normal;filter:none;font-weight:600}
+.route-blocked{stroke:#db716b;stroke-dasharray:7 6;opacity:.8}
