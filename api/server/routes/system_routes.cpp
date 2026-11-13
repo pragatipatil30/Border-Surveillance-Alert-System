@@ -16,9 +16,9 @@ void registerSystemRoutes(HttpApp& app)
 
         crow::json::wvalue data;
         data["service"] = "border-command-center-api";
-        data["phase"] = "4";
+        data["phase"] = "5";
         data["implementedEndpoints"] = crow::json::wvalue::list({
-            "/api/health", "/api/dashboard", "/api/records", "/api/dsa/*"
+            "/api/health", "/api/dashboard", "/api/records", "/api/dsa/*", "/ws/events"
         });
         data["notImplementedEndpoints"] = crow::json::wvalue::list({
             "/api/graph", "/api/alerts", "/api/patrol-units"

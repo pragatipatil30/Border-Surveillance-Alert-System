@@ -28,8 +28,10 @@ add_executable(border_api
   server/routes/records_routes.cpp
   server/routes/operational_routes.cpp
   server/routes/dsa_routes.cpp
+  server/routes/event_routes.cpp
   server/services/intruder_repository.cpp
   server/services/dsa_runtime.cpp
+  server/services/event_hub.cpp
   ../Graph_Map/Graph.cpp
   ../Graph_Map/GraphAlgorithms.cpp
   ../Array_Search_Sort/HashChaining.cpp

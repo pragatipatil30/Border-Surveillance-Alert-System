@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "api/responses.hpp"
+#include "api/services/event_hub.hpp"
 #include "api/services/dsa_runtime.hpp"
 
 namespace border_api::routes {
@@ -197,6 +198,7 @@ crow::response configureGraph(const crow::request& request)
     auto& runtime = services::DsaRuntime::instance();
     std::lock_guard<std::mutex> lock(runtime.mutex);
     runtime.graph = std::move(candidate);
+    services::EventHub::instance().publish("dsa.graph.changed", graphState(runtime.graph.get()));
     return successResponse(graphState(runtime.graph.get()), "DSA graph configured");
 }
 
@@ -264,6 +266,7 @@ void registerDsaRoutes(HttpApp& app)
         auto& runtime = services::DsaRuntime::instance();
         std::lock_guard<std::mutex> lock(runtime.mutex);
         runtime.stack.push(value);
+        services::EventHub::instance().publish("dsa.stack.changed", intState(runtime.stack.exportState()));
         return successResponse(intState(runtime.stack.exportState()), "Value pushed onto stack");
     });
     CROW_ROUTE(app, "/api/dsa/stack/pop").methods(crow::HTTPMethod::Post)
@@ -272,6 +275,7 @@ void registerDsaRoutes(HttpApp& app)
         std::lock_guard<std::mutex> lock(runtime.mutex);
         if (runtime.stack.empty()) return errorResponse(409, "STACK_EMPTY", "Cannot pop an empty stack");
         const int value = runtime.stack.pop();
+        services::EventHub::instance().publish("dsa.stack.changed", intState(runtime.stack.exportState()));
         wvalue data = intState(runtime.stack.exportState());
         data["value"] = value;
         return successResponse(std::move(data), "Top value popped from stack");
@@ -300,6 +304,7 @@ void registerDsaRoutes(HttpApp& app)
         auto& runtime = services::DsaRuntime::instance();
         std::lock_guard<std::mutex> lock(runtime.mutex);
         runtime.queue.enqueue(value);
+        services::EventHub::instance().publish("dsa.queue.changed", intState(runtime.queue.exportState()));
         return successResponse(intState(runtime.queue.exportState()), "Value enqueued");
     });
     CROW_ROUTE(app, "/api/dsa/queue/dequeue").methods(crow::HTTPMethod::Post)
@@ -308,6 +313,7 @@ void registerDsaRoutes(HttpApp& app)
         std::lock_guard<std::mutex> lock(runtime.mutex);
         if (runtime.queue.empty()) return errorResponse(409, "QUEUE_EMPTY", "Cannot dequeue an empty queue");
         const int value = runtime.queue.dequeue();
+        services::EventHub::instance().publish("dsa.queue.changed", intState(runtime.queue.exportState()));
         wvalue data = intState(runtime.queue.exportState());
         data["value"] = value;
         return successResponse(std::move(data), "Front value dequeued");
@@ -339,6 +345,7 @@ void registerDsaRoutes(HttpApp& app)
         auto& runtime = services::DsaRuntime::instance();
         std::lock_guard<std::mutex> lock(runtime.mutex);
         runtime.priorityQueue.insert(value, priority);
+        services::EventHub::instance().publish("dsa.priority-queue.changed", priorityState(runtime.priorityQueue));
         return successResponse(priorityState(runtime.priorityQueue), "Item inserted into priority queue");
     });
     CROW_ROUTE(app, "/api/dsa/priority-queue/extract").methods(crow::HTTPMethod::Post)
@@ -347,6 +354,7 @@ void registerDsaRoutes(HttpApp& app)
         std::lock_guard<std::mutex> lock(runtime.mutex);
         dsa::PriorityItem item{};
         if (!runtime.priorityQueue.extract(item)) return errorResponse(409, "PRIORITY_QUEUE_EMPTY", "Cannot extract from an empty priority queue");
+        services::EventHub::instance().publish("dsa.priority-queue.changed", priorityState(runtime.priorityQueue));
         wvalue data = priorityState(runtime.priorityQueue);
         data["extracted"] = priorityItem(item);
         return successResponse(std::move(data), "Highest-priority item extracted");
@@ -388,6 +396,7 @@ void registerDsaRoutes(HttpApp& app)
         auto& runtime = services::DsaRuntime::instance();
         std::lock_guard<std::mutex> lock(runtime.mutex);
         if (!runtime.hashMap.insert(record)) return errorResponse(409, "DUPLICATE_ID", "Hash table already contains this id");
+        services::EventHub::instance().publish("dsa.hash-map.changed", hashState(runtime.hashMap));
         return successResponse(hashState(runtime.hashMap), "Record inserted into hash table");
     });
     CROW_ROUTE(app, "/api/dsa/hash-map/search").methods(crow::HTTPMethod::Post)
@@ -411,6 +420,7 @@ void registerDsaRoutes(HttpApp& app)
         auto& runtime = services::DsaRuntime::instance();
         std::lock_guard<std::mutex> lock(runtime.mutex);
         if (!runtime.hashMap.remove(id)) return errorResponse(404, "RECORD_NOT_FOUND", "Hash table does not contain this id");
+        services::EventHub::instance().publish("dsa.hash-map.changed", hashState(runtime.hashMap));
         return successResponse(hashState(runtime.hashMap), "Record removed from hash table");
     });
 

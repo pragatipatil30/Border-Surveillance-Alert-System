@@ -166,4 +166,5 @@ The React status provider calls the configured base URL plus `/health`. Records 
 - Integrate actual alert queue and patrol-unit structures before implementing their reads or operations.
 - Add persistence if DSA Lab state must survive API restarts.
 - Add endpoint-level C++ integration tests and connect each frontend view to its real route.
-- Consider WebSockets after REST reads and mutations exist; current updates use health polling only.
+- `GET /ws/events` upgrades to a WebSocket connection for realtime application events. The server sends `system.connected` on connect and answers JSON `{"type":"ping","timestamp":"..."}` messages with `system.pong` (echoing `clientTimestamp`). DSA state mutations broadcast `dsa.stack.changed`, `dsa.queue.changed`, `dsa.priority-queue.changed`, `dsa.graph.changed`, or `dsa.hash-map.changed`; each envelope has `event`, UTC `timestamp`, and `data` fields. The React client retries with exponential backoff and jitter and keeps HTTP health polling separate.
+- Live alert events are not available: the application still has no alert queue (`GET /api/alerts` returns HTTP 501 `FEATURE_NOT_IMPLEMENTED`). The event channel does not synthesize alerts. Records are read-only, so there are no record mutation events to publish.

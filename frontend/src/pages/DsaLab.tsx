@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Activity, AlertTriangle, ChevronRight, Command, Database, GitBranch, Shield } from 'lucide-react'
 import { dsaApi } from '../services/dsaApi'
+import { useBackendStatus } from '../services/BackendStatusContext'
 
 type Tool = 'Stack' | 'Queue' | 'Priority Queue' | 'Graph' | 'Hash Map'
 
@@ -21,6 +22,7 @@ const tools: { name: Tool; icon: React.ReactNode }[] = [
 ]
 
 export function DsaLab() {
+  const { subscribeEvents } = useBackendStatus()
   const [selected, setSelected] = useState<Tool>('Stack')
   const [result, setResult] = useState<unknown>(null)
   const [error, setError] = useState('')
@@ -58,6 +60,21 @@ export function DsaLab() {
     }).finally(() => { if (active) setBusy(false) })
     return () => { active = false }
   }, [selected])
+
+  useEffect(() => subscribeEvents((event) => {
+    const eventTool: Record<string, Tool> = {
+      'dsa.stack.changed': 'Stack',
+      'dsa.queue.changed': 'Queue',
+      'dsa.priority-queue.changed': 'Priority Queue',
+      'dsa.graph.changed': 'Graph',
+      'dsa.hash-map.changed': 'Hash Map',
+    }
+    const changedTool = eventTool[event.event]
+    if (!changedTool || changedTool !== selected) return
+    loaders[changedTool]().then(setResult).catch((cause: unknown) => {
+      setError(cause instanceof Error ? cause.message : 'Could not refresh the live C++ state.')
+    })
+  }), [selected, subscribeEvents])
 
   const invoke = (operation: () => Promise<unknown>) => { void run(operation) }
   const integer = (raw: string) => {

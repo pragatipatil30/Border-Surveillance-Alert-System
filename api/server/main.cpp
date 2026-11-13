@@ -15,6 +15,7 @@
 #include "api/routes/records_routes.hpp"
 #include "api/routes/operational_routes.hpp"
 #include "api/routes/dsa_routes.hpp"
+#include "api/routes/event_routes.hpp"
 
 namespace {
 
@@ -70,6 +71,7 @@ int main()
         border_api::routes::registerRecordsRoutes(app);
         border_api::routes::registerOperationalRoutes(app);
         border_api::routes::registerDsaRoutes(app);
+        border_api::routes::registerEventRoutes(app, allowedOrigin);
 
         CROW_ROUTE(app, "/api/<path>")
             .methods(crow::HTTPMethod::Get, crow::HTTPMethod::Post,
