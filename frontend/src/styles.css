@@ -21,3 +21,4 @@
 html{font-variant-numeric:lining-nums tabular-nums}
 .weight-label-bg{fill:#081720d9;stroke:#d9b77a55;stroke-width:.8}.route-distance{stroke:none;paint-order:normal;filter:none;font-weight:600}
 .route-blocked{stroke:#db716b;stroke-dasharray:7 6;opacity:.8}
+.dsa-controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:9px;padding:12px 0}.dsa-field{display:flex;flex-direction:column;gap:5px;color:#879496;font-size:8px;min-width:90px}.dsa-field input,.dsa-field textarea{min-width:100px;max-width:100%;border:1px solid #ffffff18;border-radius:5px;background:#091820;color:#e5dfd2;padding:8px;font:10px var(--mono);outline:none}.dsa-field input:focus,.dsa-field textarea:focus{border-color:#c5a66c88}.dsa-field textarea{width:min(100%,420px);height:88px;resize:vertical}.dsa-graph-controls>.dsa-field{flex:1 1 220px}.dsa-result{max-height:340px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}

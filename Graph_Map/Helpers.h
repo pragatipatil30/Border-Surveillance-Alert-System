@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 using EventCallback = std::function<void(const std::string&)>;
 
@@ -70,6 +71,10 @@ public:
     T&   peek()        { return data_[top_ - 1]; }
     bool empty() const { return top_ == 0; }
     int  size()  const { return top_; }
+    std::vector<T> exportState() const
+    {
+        return std::vector<T>(data_, data_ + top_); // bottom to top
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -126,6 +131,14 @@ public:
 
     bool empty() const { return count_ == 0; }
     int  size()  const { return count_; }
+    std::vector<T> exportState() const
+    {
+        std::vector<T> values;
+        values.reserve(static_cast<std::size_t>(count_));
+        for (int i = 0; i < count_; ++i)
+            values.push_back(data_[(front_ + i) % capacity_]);
+        return values; // front to back
+    }
 };
 
 #endif // P3_HELPERS_H

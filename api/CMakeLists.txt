@@ -27,10 +27,15 @@ add_executable(border_api
   server/routes/dashboard_routes.cpp
   server/routes/records_routes.cpp
   server/routes/operational_routes.cpp
+  server/routes/dsa_routes.cpp
   server/services/intruder_repository.cpp
+  server/services/dsa_runtime.cpp
+  ../Graph_Map/Graph.cpp
+  ../Graph_Map/GraphAlgorithms.cpp
+  ../Array_Search_Sort/HashChaining.cpp
 )
 target_compile_features(border_api PRIVATE cxx_std_17)
-target_include_directories(border_api PRIVATE server/include ../common)
+target_include_directories(border_api PRIVATE server/include ../common ../Graph_Map ../Array_Search_Sort)
 target_link_libraries(border_api PRIVATE Crow::Crow Threads::Threads)
 
 if(MSVC)

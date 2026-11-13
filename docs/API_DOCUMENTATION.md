@@ -1,8 +1,8 @@
-# Border Command Center API — Phase 3
+# Border Command Center API — Phase 4
 
 ## Scope
 
-Phase 1 added a Crow HTTP server, a CORS policy for the local Vite app, a JSON response envelope, and the React request client. Phase 2 added read endpoints for the current intruder record file and dashboard statistics derived from those records. Phase 3 connects the operational pages to their API routes and reports unavailable C++ runtime data explicitly instead of displaying the dashboard demo records as live data.
+Phase 1 added a Crow HTTP server, a CORS policy for the local Vite app, a JSON response envelope, and the React request client. Phase 2 added read endpoints for the current intruder record file and dashboard statistics. Phase 3 connected operational pages and reports unavailable runtime data honestly. Phase 4 exposes real C++ data-structure and graph-algorithm operations to the DSA Lab.
 
 Crow's JSON writer is used for responses, so this phase does not add a second JSON dependency. The Crow project describes its framework as supporting HTTP/WebSocket services and built-in JSON; its CORS middleware supports origin, method and header rules. [Crow project](https://github.com/CrowCpp/Crow), [Crow CORS middleware](https://crowcpp.org/1.3.0/guides/included-middleware/).
 
@@ -10,14 +10,34 @@ Crow's JSON writer is used for responses, so this phase does not add a second JS
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/api` | Reports the API foundation and implemented route list. |
+| `GET` | `/api` | Reports implemented endpoints and known unavailable modules. |
 | `GET` | `/api/health` | Returns a successful health response when the C++ HTTP process is serving requests. |
 | `GET` | `/api/dashboard` | Returns total intruder records, high threat count, and counts for threat levels 1–5. Active alerts and patrol units are `null` because no runtime data for them exists in the current C++ application. |
 | `GET` | `/api/records` | Returns records loaded from the same `intruders.txt` file used by the console application. |
 | `GET` | `/api/graph` | Returns HTTP `501 FEATURE_NOT_IMPLEMENTED`: the graph class exists but no checkpoint graph is initialized by the application. |
 | `GET` | `/api/alerts` | Returns HTTP `501 FEATURE_NOT_IMPLEMENTED`: no alert queue is initialized by the application. |
 | `GET` | `/api/patrol-units` | Returns HTTP `501 FEATURE_NOT_IMPLEMENTED`: no patrol-unit store is initialized by the application. |
-| `GET` | `/api` | Reports implemented and not implemented endpoints. |
+| `GET` | `/api/dsa/stack` | Current stack values, bottom to top. |
+| `POST` | `/api/dsa/stack/push` | Push `{"value": 7}`. |
+| `POST` | `/api/dsa/stack/pop` | Pop and return the top value; `409 STACK_EMPTY` if empty. |
+| `GET` | `/api/dsa/stack/peek` | Read the top value without removing it. |
+| `GET` | `/api/dsa/queue` | Current queue values, front to back. |
+| `POST` | `/api/dsa/queue/enqueue` | Enqueue `{"value": 7}`. |
+| `POST` | `/api/dsa/queue/dequeue` | Remove the front value; `409 QUEUE_EMPTY` if empty. |
+| `GET` | `/api/dsa/queue/front` | Read the front value without removing it. |
+| `GET` | `/api/dsa/priority-queue` | Current binary max-heap state and highest-priority item. |
+| `POST` | `/api/dsa/priority-queue/insert` | Insert `{"value": 7, "priority": 3}`. Higher number means higher priority; equal priorities are FIFO. |
+| `POST` | `/api/dsa/priority-queue/extract` | Remove and return the highest-priority item. |
+| `GET` | `/api/dsa/priority-queue/peek` | Read the highest-priority item without removing it. |
+| `GET` | `/api/dsa/graph` | Current DSA graph, or `configured: false` if none was supplied. |
+| `POST` | `/api/dsa/graph` | Configure vertices and weighted edges for DSA algorithm operations. |
+| `POST` | `/api/dsa/graph/bfs` | Breadth-first traversal from `{"start": 0}`. |
+| `POST` | `/api/dsa/graph/dfs` | Depth-first traversal from `{"start": 0}`. |
+| `POST` | `/api/dsa/graph/dijkstra` | Shortest path for `{"source": 0, "target": 1}`. |
+| `GET` | `/api/dsa/hash-map` | Current separate-chaining hash table with buckets. |
+| `POST` | `/api/dsa/hash-map/insert` | Insert an intruder record (`id`, `name`, `location`, `threatLevel`). |
+| `POST` | `/api/dsa/hash-map/search` | Search by `{"id": 7}`. |
+| `POST` | `/api/dsa/hash-map/remove` | Remove by `{"id": 7}`. |
 
 Successful response:
 
@@ -69,13 +89,15 @@ Example `GET /api/dashboard` data:
 
 Unreadable or malformed record files return HTTP `503` with `DATA_UNAVAILABLE`. A missing file is treated as an empty record collection, matching the console application's existing behavior. Records are re-read on each request so saves made by the console app appear without restarting the API.
 
-The graph algorithms and graph class exist in `Graph_Map`, but this repository does not initialize a shared checkpoint graph for the API to expose. The alert queue and patrol runtime are absent. Those GET routes return HTTP `501` with a JSON error instead of returning empty or sample live data. The Live Surveillance, Alerts, and Patrol pages call these routes and show the backend response. Records remains connected to the existing file-backed records in read-only mode.
+The graph algorithms and graph class exist in `Graph_Map`, but the production app does not initialize a shared checkpoint graph. The DSA Lab accepts graph input and invokes the existing C++ `Graph`, BFS, DFS, and Dijkstra implementations; this is a lab graph, separate from Live Surveillance. The alert queue and patrol runtime are absent, so those operational routes continue to return HTTP `501`. Records remains connected to the existing file-backed records in read-only mode.
+
+The DSA runtime uses the existing `SimpleStack<int>`, `SimpleQueue<int>`, and `HashChaining` implementations. State is held in the API process, guarded by a mutex, and clears when the server restarts. The repository did not contain an application priority-queue class, so Phase 4 adds a C++ binary max-heap for DSA Lab operations; it extracts the largest numeric priority and preserves insertion order for ties. It does not change alert handling because no alert queue exists.
 
 ## Architecture
 
 `api/server/main.cpp` reads the listener and CORS settings, configures Crow, registers route modules and starts the server. `api/server/routes/health_routes.cpp` owns the health controller. `api/server/include/api/responses.hpp` centralizes success/error envelopes. The C++ DSA modules remain separate and are not yet attached to HTTP state.
 
-The React client in `frontend/src/services/api.ts` centralizes the base URL, timeout, envelope validation and network errors. `BackendStatusProvider` polls `/health` and makes that result available to every view. The dashboard reads total/high-threat counts from `/dashboard`; dashboard preview panels remain clearly marked sample data. The Records tab reads actual records from `/records`. Live Surveillance, Alerts, and Patrol request their respective endpoints and display loading, error, and empty states without replacing backend errors with sample rows.
+The React client in `frontend/src/services/api.ts` centralizes the base URL, timeout, envelope validation and network errors. `BackendStatusProvider` polls `/health`. The dashboard reads total/high-threat counts from `/dashboard`; its preview panels remain marked sample data. Records reads actual records from `/records`. Live Surveillance, Alerts, and Patrol show explicit API capability errors where runtime data is absent. The DSA Lab calls the C++ APIs for stack, queue, priority-queue, graph, and hash-map operations and renders the returned state/results.
 
 ## Build and run
 
@@ -118,6 +140,11 @@ curl -i http://localhost:18080/api/records
 curl -i http://localhost:18080/api/graph
 curl -i http://localhost:18080/api/alerts
 curl -i http://localhost:18080/api/patrol-units
+curl -i http://localhost:18080/api/dsa/stack
+curl -i -X POST -H 'Content-Type: application/json' -d '{"value":7}' http://localhost:18080/api/dsa/stack/push
+curl -i http://localhost:18080/api/dsa/priority-queue
+curl -i http://localhost:18080/api/dsa/hash-map
+curl -i http://localhost:18080/api/dsa/graph
 curl -i -H 'Origin: http://localhost:5173' http://localhost:18080/api/health
 curl -i -X OPTIONS \
   -H 'Origin: http://localhost:5173' \
@@ -130,13 +157,13 @@ The health, dashboard and records requests should return HTTP 200 and JSON when 
 
 ## Request flow
 
-The React status provider calls the configured base URL plus `/health`. For records and dashboard stats, the client calls `/records` or `/dashboard`; the C++ repository reads the console app's file and the dashboard route calculates counts from those records. The operational pages call `/graph`, `/alerts`, and `/patrol-units`; the API responds with an explicit not-implemented error while those runtimes are absent. Crow adds CORS headers, and the React API client validates HTTP status and response envelopes. A failed health request is reported as disconnected. API requests use a five-second timeout.
+The React status provider calls the configured base URL plus `/health`. Records and dashboard requests read the existing console file. DSA Lab requests call the C++ structure or graph algorithm directly; the API serializes the resulting state in the standard JSON envelope. Runtime structure calls are serialized with a mutex. Crow adds CORS headers, and the React API client validates HTTP status and response envelopes. A failed health request is reported as disconnected. API requests use a five-second timeout.
 
-## Remaining work after Phase 3
+## Remaining work after Phase 4
 
 - Connect records POST/PUT/DELETE to shared application state; current record integration is read-only through the existing file format.
-- Initialize and own the production checkpoint graph before replacing the `501` response with graph queries or algorithms.
+- Initialize and own the production checkpoint graph before connecting DSA graph input to Live Surveillance.
 - Integrate actual alert queue and patrol-unit structures before implementing their reads or operations.
-- Add synchronization and persistence rules before adding concurrent API mutations.
+- Add persistence if DSA Lab state must survive API restarts.
 - Add endpoint-level C++ integration tests and connect each frontend view to its real route.
 - Consider WebSockets after REST reads and mutations exist; current updates use health polling only.

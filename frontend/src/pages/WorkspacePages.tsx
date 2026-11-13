@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, AlertTriangle, Bell, Check, ChevronRight, Clock3, Command, Crosshair, Database, GitBranch, LocateFixed, Radio, Search, Shield, ShieldAlert, Wifi } from 'lucide-react'
+import { AlertTriangle, Bell, Check, ChevronRight, Clock3, Crosshair, GitBranch, LocateFixed, Radio, Search, ShieldAlert, Wifi } from 'lucide-react'
 import { BorderMap } from '../components/dashboard/BorderMap'
 import { ConnectionStatus } from '../components/layout/ConnectionStatus'
+import { DsaLab } from './DsaLab'
 import { useBackendStatus } from '../services/BackendStatusContext'
 import { API_BASE, getAlerts, getOperationalGraph, getPatrolUnits, getRecords } from '../services/api'
 import type { Alert, Checkpoint, IntruderRecord, OperationalGraph, PatrolUnit, Threat } from '../types/dashboard'
@@ -104,19 +105,7 @@ function PatrolPage() {
   return <div className="workspace-stack"><div className="unit-grid">{units.map((unit) => <article className="panel unit-card" key={unit.id}><div className="unit-card-head"><div className="unit-icon"><Radio size={17}/></div><span className={`unit-status status-${unit.status.toLowerCase().replace(' ', '-')}`}><i/>{unit.status}</span></div><h2>{unit.id}</h2><div className="unit-location"><LocateFixed size={13}/>{unit.checkpoint}</div><div className="unit-assignment"><span>ASSIGNMENT</span><strong>{unit.assignment}</strong></div><div className="unit-updated"><Clock3 size={12}/>Updated {unit.updated}</div></article>)}</div>{units.length === 0 && <div className="workspace-note"><Radio size={15}/><span>The C++ backend returned no patrol units.</span></div>}</div>
 }
 
-function DsaPage() {
-  const [selected, setSelected] = useState('Graph')
-  const cards = [
-    { name: 'Graph', icon: <GitBranch/>, status: 'IMPLEMENTED', description: 'Adjacency-list graph with checkpoint coordinates, weighted routes, blocked edges and exported visual state.', cpp: 'Graph::exportState()\nGraphAlgo::shortestPath(g, source, target)' },
-    { name: 'Graph traversal', icon: <Activity/>, status: 'IMPLEMENTED', description: 'Breadth-first and depth-first traversal ignore blocked routes and can emit step messages through callbacks.', cpp: 'GraphAlgo::bfs(g, start, order, log)\nGraphAlgo::dfsIterative(g, start, order, log)' },
-    { name: 'Shortest path', icon: <Crosshair/>, status: 'IMPLEMENTED', description: 'Dijkstra routing and nearest-candidate helper support patrol dispatch calculations in C++.', cpp: 'GraphAlgo::dijkstra(g, source, dist, prev)\nGraphAlgo::nearestCandidate(...)' },
-    { name: 'Binary search tree', icon: <GitBranch/>, status: 'IMPLEMENTED', description: 'Intruder BST supports name search, prefix suggestions, traversals and an exported node view.', cpp: 'BST::prefixSearch(prefix, results)\nBST::exportState()' },
-    { name: 'Stack & queue', icon: <Database/>, status: 'GRAPH INTERNALS', description: 'The graph algorithms use small C++ stack and circular queue helpers for traversals. App-level alert/undo structures are not present in this repository yet.', cpp: 'SimpleStack<T>\nSimpleQueue<T>' },
-    { name: 'Hash table', icon: <Database/>, status: 'NOT IN CURRENT REPO', description: 'The README describes hashing as planned project scope, but a hash-table implementation is not present in the checked-in folders.', cpp: 'No hash-table source found' },
-  ]
-  const active = cards.find((card) => card.name === selected) ?? cards[0]
-  return <div className="dsa-layout"><section className="panel dsa-menu"><div className="dsa-menu-heading"><div className="eyebrow">STRUCTURES &amp; ALGORITHMS</div><h2>Implementation map</h2></div>{cards.map((card) => <button className={`dsa-option ${selected === card.name ? 'selected' : ''}`} onClick={() => setSelected(card.name)} key={card.name}>{card.icon}<span>{card.name}<small>{card.status}</small></span><ChevronRight size={15}/></button>)}</section><section className="panel dsa-detail"><div className="dsa-detail-heading"><div className="dsa-feature-icon">{active.icon}</div><div><div className="eyebrow">C++ SOURCE OVERVIEW</div><h2>{active.name}</h2></div><span className="implementation-badge">{active.status}</span></div><p className="dsa-description">{active.description}</p><div className="dsa-code-label">PROJECT API / SOURCE SYMBOLS</div><pre className="code-block"><code>{active.cpp}</code></pre><div className="workspace-note"><Command size={14}/><span>This panel documents the checked-in C++ surface. Interactive operation visualizations need an API adapter to call the real implementations.</span><DemoTag/></div></section><div className="dsa-footnote"><Shield size={15}/><span>Algorithm execution belongs to the C++ backend. This UI does not recreate graph traversal, Dijkstra, or other DSA behavior in JavaScript.</span></div></div>
-}
+function DsaPage() { return <DsaLab/> }
 
 function SettingsPage() {
   const { status } = useBackendStatus()
