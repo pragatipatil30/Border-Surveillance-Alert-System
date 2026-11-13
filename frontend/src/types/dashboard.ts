@@ -6,4 +6,6 @@ export interface Alert { id: string; title: string; checkpoint: string; time: st
 export interface Activity { id: string; name: string; checkpoint: string; threat: Threat; status: string; time: string }
 export interface PatrolUnit { id: string; checkpoint: string; status: 'Available' | 'On patrol' | 'Dispatched' | 'Offline'; assignment: string; updated: string }
 export interface DashboardData { metrics: Metric[]; checkpoints: Checkpoint[]; routes: Route[]; alerts: Alert[]; threatDistribution: { name: string; value: number; color: string }[]; activities: Activity[]; patrolUnits: PatrolUnit[] }
+export interface IntruderRecord { id: string; name: string; location: string; threatLevel: number }
+export interface DashboardSummary { totalIntruders: number; highThreatIntruders: number; threatLevelCounts: number[]; activeAlerts: number | null; availablePatrolUnits: number | null }
 export type BackendStatus = 'connected' | 'disconnected' | 'checking'

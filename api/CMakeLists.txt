@@ -24,9 +24,12 @@ add_executable(border_api
   server/main.cpp
   server/routes/system_routes.cpp
   server/routes/health_routes.cpp
+  server/routes/dashboard_routes.cpp
+  server/routes/records_routes.cpp
+  server/services/intruder_repository.cpp
 )
 target_compile_features(border_api PRIVATE cxx_std_17)
-target_include_directories(border_api PRIVATE server/include)
+target_include_directories(border_api PRIVATE server/include ../common)
 target_link_libraries(border_api PRIVATE Crow::Crow Threads::Threads)
 
 if(MSVC)

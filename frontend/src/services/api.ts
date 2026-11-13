@@ -1,7 +1,7 @@
 import { mockDashboard } from './mockApi'
 import type { ApiEnvelope, ApiFailure } from '../types/api'
 import { ApiError } from '../types/api'
-import type { DashboardData } from '../types/dashboard'
+import type { DashboardData, DashboardSummary, IntruderRecord } from '../types/dashboard'
 
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:18080/api').replace(/\/$/, '')
 
@@ -41,12 +41,36 @@ export async function checkHealth(): Promise<boolean> {
   } catch { return false }
 }
 
-export async function getDashboard(): Promise<{ data: DashboardData; demo: boolean }> {
+export async function getDashboard(): Promise<{ data: DashboardData; demo: boolean; summaryAvailable: boolean }> {
   try {
-    return { data: await apiRequest<DashboardData>('/dashboard'), demo: false }
+    const summary = await apiRequest<DashboardSummary>('/dashboard')
+    const low = summary.threatLevelCounts[0] + summary.threatLevelCounts[1]
+    const medium = summary.threatLevelCounts[2]
+    const high = summary.threatLevelCounts[3] + summary.threatLevelCounts[4]
+    const total = low + medium + high
+    const percent = (count: number) => total === 0 ? 0 : Math.round((count / total) * 100)
+    const data: DashboardData = {
+      ...mockDashboard,
+      metrics: mockDashboard.metrics.map((metric) => {
+        if (metric.label === 'Total Intruders') return { ...metric, value: String(summary.totalIntruders) }
+        if (metric.label === 'High Threat') return { ...metric, value: String(summary.highThreatIntruders) }
+        return { ...metric, value: '—' }
+      }),
+      threatDistribution: [
+        { name: 'Low', value: percent(low), color: '#67B98D' },
+        { name: 'Medium', value: percent(medium), color: '#E9B85F' },
+        { name: 'High', value: percent(high), color: '#DB716B' },
+      ],
+    }
+    return { data, demo: true, summaryAvailable: true }
   } catch {
-    return { data: mockDashboard, demo: true }
+    return { data: mockDashboard, demo: true, summaryAvailable: false }
   }
+}
+
+export async function getRecords(): Promise<IntruderRecord[]> {
+  const response = await apiRequest<{ records: IntruderRecord[]; count: number }>('/records')
+  return response.records
 }
 
 export async function dispatchAlert(alertId: string): Promise<{ dispatched: boolean; demo: boolean }> {

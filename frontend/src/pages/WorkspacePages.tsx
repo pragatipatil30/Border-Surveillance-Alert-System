@@ -3,8 +3,8 @@ import { Activity, AlertTriangle, Bell, Check, ChevronRight, Clock3, Command, Cr
 import { BorderMap } from '../components/dashboard/BorderMap'
 import { ConnectionStatus } from '../components/layout/ConnectionStatus'
 import { useBackendStatus } from '../services/BackendStatusContext'
-import { API_BASE, getDashboard } from '../services/api'
-import type { Checkpoint, DashboardData, Threat } from '../types/dashboard'
+import { API_BASE, getDashboard, getRecords } from '../services/api'
+import type { Checkpoint, DashboardData, IntruderRecord, Threat } from '../types/dashboard'
 
 type Page = 'surveillance' | 'records' | 'alerts' | 'patrol' | 'dsa' | 'settings'
 const pageTitles: Record<Page, { eyebrow: string; title: string; description: string }> = {
@@ -28,7 +28,7 @@ export function WorkspacePage({ page, onNavigate }: { page: Page; onNavigate: (p
   useEffect(() => { getDashboard().then(({ data }) => setDashboard(data)) }, [])
   return <main className="dashboard-content"><PageHeader page={page} onNavigate={onNavigate}/>{!dashboard ? <div className="loading-card">Establishing command link<span className="loading-pulse"/></div> : <>
     {page === 'surveillance' && <SurveillancePage data={dashboard}/>}
-    {page === 'records' && <RecordsPage data={dashboard}/>}
+    {page === 'records' && <RecordsPage/>}
     {page === 'alerts' && <AlertsPage data={dashboard}/>}
     {page === 'patrol' && <PatrolPage data={dashboard}/>}
     {page === 'dsa' && <DsaPage/>}
@@ -44,14 +44,25 @@ function SurveillancePage({ data }: { data: DashboardData }) {
 
 function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) { return <div className="panel workspace-stat"><span>{label}</span><strong>{value}</strong><i>{icon}</i></div> }
 
-function RecordsPage({ data }: { data: DashboardData }) {
+function RecordsPage() {
   const [query, setQuery] = useState('')
   const [level, setLevel] = useState('All levels')
-  const rows = useMemo(() => data.activities.filter((item) => `${item.id} ${item.name} ${item.checkpoint}`.toLowerCase().includes(query.toLowerCase()) && (level === 'All levels' || item.threat === level.toUpperCase())), [data, query, level])
-  return <div className="panel records-panel"><div className="records-toolbar"><div className="searchbox records-search"><Search size={15}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search ID, subject or checkpoint…"/></div><select value={level} onChange={(e) => setLevel(e.target.value)}><option>All levels</option><option>High</option><option>Medium</option><option>Low</option></select><DemoTag/></div><div className="table-wrap"><table className="records-table"><thead><tr><th>RECORD ID</th><th>SUBJECT / INCIDENT</th><th>LOCATION</th><th>THREAT</th><th>STATUS</th><th>LAST UPDATE</th></tr></thead><tbody>{rows.map((r) => <tr key={r.id}><td><strong>{r.id}</strong></td><td>{r.name}</td><td>{r.checkpoint}</td><td><ThreatLabel threat={r.threat}/></td><td><span className={`status-text ${r.status === 'Resolved' ? 'resolved' : ''}`}><i/>{r.status}</span></td><td>{r.time}</td></tr>)}</tbody></table>{rows.length === 0 && <div className="empty-state">No records match those filters.</div>}</div><div className="records-foot">Showing {rows.length} of {data.activities.length} sample records <span>Record model in C++: id, name, location, threatlevel</span></div></div>
+  const [records, setRecords] = useState<IntruderRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    let disposed = false
+    getRecords().then((items) => { if (!disposed) setRecords(items) }).catch((cause: unknown) => {
+      if (!disposed) setError(cause instanceof Error ? cause.message : 'Could not load intruder records.')
+    }).finally(() => { if (!disposed) setLoading(false) })
+    return () => { disposed = true }
+  }, [])
+  const rows = useMemo(() => records.filter((item) => `${item.id} ${item.name} ${item.location}`.toLowerCase().includes(query.toLowerCase()) && (level === 'All levels' || threatCategory(item.threatLevel) === level.toUpperCase())), [records, query, level])
+  return <div className="panel records-panel"><div className="records-toolbar"><div className="searchbox records-search"><Search size={15}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search ID, subject or location…"/></div><select value={level} onChange={(e) => setLevel(e.target.value)}><option>All levels</option><option>High</option><option>Medium</option><option>Low</option></select><span className="demo-inline">C++ FILE DATA</span></div><div className="table-wrap"><table className="records-table"><thead><tr><th>RECORD ID</th><th>SUBJECT</th><th>LOCATION</th><th>THREAT LEVEL</th></tr></thead><tbody>{rows.map((record) => <tr key={record.id}><td><strong>{record.id}</strong></td><td>{record.name}</td><td>{record.location}</td><td><ThreatLabel threat={threatCategory(record.threatLevel)}/></td></tr>)}</tbody></table>{loading && <div className="empty-state">Loading records from the C++ backend…</div>}{error && <div className="empty-state" role="alert">Backend error: {error}</div>}{!loading && !error && rows.length === 0 && <div className="empty-state">{records.length === 0 ? 'No C++ intruder records are stored yet.' : 'No records match those filters.'}</div>}</div><div className="records-foot">Showing {rows.length} of {records.length} backend records <span>Read from intruders.txt · id, name, location, threat level</span></div></div>
 }
 
 function ThreatLabel({ threat }: { threat: Threat }) { return <span className={`table-threat threat-${threat.toLowerCase()}`}><i/>{threat}</span> }
+function threatCategory(level: number): Threat { return level >= 4 ? 'HIGH' : level === 3 ? 'MEDIUM' : 'LOW' }
 
 function AlertsPage({ data }: { data: DashboardData }) {
   const [filter, setFilter] = useState('ALL')

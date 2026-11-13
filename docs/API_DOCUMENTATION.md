@@ -1,8 +1,8 @@
-# Border Command Center API — Phase 1
+# Border Command Center API — Phase 2
 
 ## Scope
 
-Phase 1 adds a Crow HTTP server, a CORS policy for the local Vite app, a JSON response envelope, and the React request client. The implemented routes are `GET /api` and `GET /api/health`. The repository has no existing HTTP service or C++ API build system; this API is a separate executable and does not change or duplicate existing DSA classes.
+Phase 1 added a Crow HTTP server, a CORS policy for the local Vite app, a JSON response envelope, and the React request client. Phase 2 adds read endpoints for the current intruder record file and dashboard statistics derived from those records. The API is a separate executable and does not change or duplicate existing DSA classes.
 
 Crow's JSON writer is used for responses, so this phase does not add a second JSON dependency. The Crow project describes its framework as supporting HTTP/WebSocket services and built-in JSON; its CORS middleware supports origin, method and header rules. [Crow project](https://github.com/CrowCpp/Crow), [Crow CORS middleware](https://crowcpp.org/1.3.0/guides/included-middleware/).
 
@@ -12,6 +12,8 @@ Crow's JSON writer is used for responses, so this phase does not add a second JS
 |---|---|---|
 | `GET` | `/api` | Reports the API foundation and implemented route list. |
 | `GET` | `/api/health` | Returns a successful health response when the C++ HTTP process is serving requests. |
+| `GET` | `/api/dashboard` | Returns total intruder records, high threat count, and counts for threat levels 1–5. Active alerts and patrol units are `null` because no runtime data for them exists in the current C++ application. |
+| `GET` | `/api/records` | Returns records loaded from the same `intruders.txt` file used by the console application. |
 
 Successful response:
 
@@ -38,13 +40,38 @@ Unknown `/api/*` paths return HTTP `404` and a JSON error envelope:
 }
 ```
 
-The dashboard, records, graph, alert, patrol and DSA routes are not implemented in Phase 1. Their future handlers must call the existing C++ structures and preserve backend state and ordering.
+Example `GET /api/records` data:
+
+```json
+{
+  "records": [
+    { "id": "102", "name": "Ali", "location": "Punjab", "threatLevel": 3 }
+  ],
+  "count": 1
+}
+```
+
+Example `GET /api/dashboard` data:
+
+```json
+{
+  "totalIntruders": 2,
+  "highThreatIntruders": 1,
+  "threatLevelCounts": [0, 0, 1, 1, 0],
+  "activeAlerts": null,
+  "availablePatrolUnits": null
+}
+```
+
+Unreadable or malformed record files return HTTP `503` with `DATA_UNAVAILABLE`. A missing file is treated as an empty record collection, matching the console application's existing behavior. Records are re-read on each request so saves made by the console app appear without restarting the API.
+
+The graph, alert, patrol and DSA operation routes are not implemented. Although graph classes and algorithms exist in `Graph_Map`, this repository does not initialize a shared production checkpoint graph for the API to expose. The alert queue and patrol runtime are also absent. The React panels for those features remain labeled sample data; no API operations or counts are fabricated for them.
 
 ## Architecture
 
 `api/server/main.cpp` reads the listener and CORS settings, configures Crow, registers route modules and starts the server. `api/server/routes/health_routes.cpp` owns the health controller. `api/server/include/api/responses.hpp` centralizes success/error envelopes. The C++ DSA modules remain separate and are not yet attached to HTTP state.
 
-The React client in `frontend/src/services/api.ts` centralizes the base URL, timeout, envelope validation and network errors. `BackendStatusProvider` polls `/health` and makes that result available to every view. The dashboard's demo data fallback remains clearly marked; successful rendering does not count as backend health.
+The React client in `frontend/src/services/api.ts` centralizes the base URL, timeout, envelope validation and network errors. `BackendStatusProvider` polls `/health` and makes that result available to every view. The dashboard reads total/high-threat counts from `/dashboard`; its alert, graph, activity and patrol panels remain clearly marked sample data. The Records tab reads actual records from `/records` and displays loading, error and empty states.
 
 ## Build and run
 
@@ -61,7 +88,7 @@ API_PORT=18080 API_CORS_ORIGIN=http://localhost:5173 ./api/build/border_api
 
 `API_PORT` defaults to `18080`; `API_CORS_ORIGIN` defaults to `http://localhost:5173`. The server binds to loopback (`127.0.0.1`) for local development. CORS allows GET, POST, PUT, DELETE and OPTIONS methods and the `Content-Type` and `Authorization` request headers. Credentials are not enabled.
 
-Configure React in `frontend/.env`:
+The API reads `intruders.txt` relative to its current working directory by default. Start the binary from the repository root, or set `INTRUDER_DATA_FILE` to an explicit file path. Configure React in `frontend/.env`:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:18080/api
@@ -82,6 +109,8 @@ With the server running:
 ```sh
 curl -i http://localhost:18080/api
 curl -i http://localhost:18080/api/health
+curl -i http://localhost:18080/api/dashboard
+curl -i http://localhost:18080/api/records
 curl -i -H 'Origin: http://localhost:5173' http://localhost:18080/api/health
 curl -i -X OPTIONS \
   -H 'Origin: http://localhost:5173' \
@@ -90,16 +119,17 @@ curl -i -X OPTIONS \
 curl -i http://localhost:18080/api/not-implemented
 ```
 
-The health request should return HTTP 200 and JSON. The allowed-origin request should include `Access-Control-Allow-Origin: http://localhost:5173`. The preflight should include the configured CORS headers. The unknown route should return HTTP 404 and JSON.
+The health, dashboard and records requests should return HTTP 200 and JSON when the record file is readable. The allowed-origin request should include `Access-Control-Allow-Origin: http://localhost:5173`. The preflight should include the configured CORS headers. The unknown route should return HTTP 404 and JSON.
 
 ## Request flow
 
-The React status provider calls the configured base URL plus `/health`. Crow matches the route, creates the JSON envelope, and adds CORS headers before sending the response. The React API client validates the HTTP status and envelope; `checkHealth()` returns connected only when the response is successful and `data.status` is `ok`. A failed request is reported as disconnected. API requests use a five-second timeout.
+The React status provider calls the configured base URL plus `/health`. For records and dashboard stats, the client calls `/records` or `/dashboard`; the C++ repository reads the console app's file and the dashboard route calculates counts from those records. Crow wraps the result in JSON and adds CORS headers. The React API client validates the HTTP status and envelope. A failed health request is reported as disconnected. API requests use a five-second timeout.
 
-## Remaining work after Phase 1
+## Remaining work after Phase 2
 
-- Add an application service object that owns the actual runtime C++ records, graph, alert queue, and other supported structures.
-- Implement read endpoints only after defining how current console globals and graph instances are initialized and shared.
-- Implement mutations only against those C++ structures with synchronization for concurrent requests.
+- Connect records POST/PUT/DELETE to shared application state; current record integration is read-only through the existing file format.
+- Initialize and own the production checkpoint graph before exposing graph queries or algorithms.
+- Implement alert and patrol operations only after those runtime structures are integrated in the C++ application.
+- Add synchronization and persistence rules before adding concurrent API mutations.
 - Add endpoint-level C++ integration tests and connect each frontend view to its real route.
-- Consider WebSockets after REST reads and mutations exist; Phase 1 uses health polling only.
+- Consider WebSockets after REST reads and mutations exist; current updates use health polling only.
