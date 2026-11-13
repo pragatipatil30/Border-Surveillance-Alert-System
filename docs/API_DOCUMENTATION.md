@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 1 adds a Crow HTTP server, a CORS policy for the local Vite app, a JSON response envelope, and the React request client. The only implemented API route is `GET /api/health`. The repository has no existing HTTP service or C++ API build system; this API is a separate executable and does not change or duplicate existing DSA classes.
+Phase 1 adds a Crow HTTP server, a CORS policy for the local Vite app, a JSON response envelope, and the React request client. The implemented routes are `GET /api` and `GET /api/health`. The repository has no existing HTTP service or C++ API build system; this API is a separate executable and does not change or duplicate existing DSA classes.
 
 Crow's JSON writer is used for responses, so this phase does not add a second JSON dependency. The Crow project describes its framework as supporting HTTP/WebSocket services and built-in JSON; its CORS middleware supports origin, method and header rules. [Crow project](https://github.com/CrowCpp/Crow), [Crow CORS middleware](https://crowcpp.org/1.3.0/guides/included-middleware/).
 
@@ -10,6 +10,7 @@ Crow's JSON writer is used for responses, so this phase does not add a second JS
 
 | Method | Path | Purpose |
 |---|---|---|
+| `GET` | `/api` | Reports the API foundation and implemented route list. |
 | `GET` | `/api/health` | Returns a successful health response when the C++ HTTP process is serving requests. |
 
 Successful response:
@@ -79,6 +80,7 @@ npm run dev
 With the server running:
 
 ```sh
+curl -i http://localhost:18080/api
 curl -i http://localhost:18080/api/health
 curl -i -H 'Origin: http://localhost:5173' http://localhost:18080/api/health
 curl -i -X OPTIONS \

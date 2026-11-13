@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/Users/Ashanipatil/Projects/Border-Surveillance-Alert-System/api",
+    "cmake.buildDirectory": "${workspaceFolder}/api/build",
+    "cmake.configureOnOpen": true,
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/api/build/compile_commands.json"
+}

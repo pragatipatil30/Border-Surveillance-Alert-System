@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(border_command_center_api LANGUAGES CXX)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 find_package(Threads REQUIRED)
@@ -21,6 +22,7 @@ FetchContent_MakeAvailable(Crow)
 
 add_executable(border_api
   server/main.cpp
+  server/routes/system_routes.cpp
   server/routes/health_routes.cpp
 )
 target_compile_features(border_api PRIVATE cxx_std_17)

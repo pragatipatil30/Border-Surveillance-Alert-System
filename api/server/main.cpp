@@ -10,6 +10,7 @@
 #include "api/http_app.hpp"
 #include "api/responses.hpp"
 #include "api/routes/health_routes.hpp"
+#include "api/routes/system_routes.hpp"
 
 namespace {
 
@@ -59,6 +60,7 @@ int main()
             .headers("Content-Type", "Authorization")
             .max_age(600);
 
+        border_api::routes::registerSystemRoutes(app);
         border_api::routes::registerHealthRoutes(app);
 
         CROW_ROUTE(app, "/api/<path>")
