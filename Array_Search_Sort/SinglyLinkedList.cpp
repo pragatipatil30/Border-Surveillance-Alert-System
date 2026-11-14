@@ -23,6 +23,9 @@ SinglyLinkedList::~SinglyLinkedList()
 // Insert an intruder record at the end
 void SinglyLinkedList::insert(Intruder record)
 {
+    if (search(record.id) != nullptr)
+        return;
+
     SinglyNode *newNode = new SinglyNode;
 
     newNode->data = record;
@@ -110,10 +113,12 @@ bool SinglyLinkedList::isEmpty() const
 {
     return head == nullptr;
 }
-
 // Export records for Qt visualization
 Intruder *SinglyLinkedList::exportState() const
 {
+    if (count == 0)
+        return nullptr;
+
     Intruder *copy = new Intruder[count];
 
     SinglyNode *current = head;
