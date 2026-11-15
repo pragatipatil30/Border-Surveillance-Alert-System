@@ -7,7 +7,7 @@ const patrols = [{ id: 'P-04', x: 34, y: 49 }, { id: 'P-08', x: 73, y: 51 }]
 export function BorderMap({ checkpoints, routes, live = false }: Props) {
   const byId = Object.fromEntries(checkpoints.map((point) => [point.id, point]))
   return <section className="panel map-panel">
-    <div className="panel-heading"><div><div className="eyebrow">FIELD OVERVIEW · {live ? 'C++ GRAPH' : 'SAMPLE GRAPH'}</div><h2>Border network</h2></div><div className="map-heading-right"><span className="demo-inline">{live ? 'BACKEND DATA' : 'DEMO GRAPH'}</span></div></div>
+    <div className="panel-heading"><div><div className="eyebrow">FIELD OVERVIEW · {live ? 'C++ GRAPH' : 'SAMPLE GRAPH'}</div><h2>Border network</h2></div><div className="map-heading-right"><span className="map-live-dot"/><span className="map-live-label">{live ? 'CONNECTED' : 'SIMULATION'}</span></div></div>
     <div className="map-canvas">
       <div className="map-art"><div className="moon"/><div className="mountain mountain-back"/><div className="mountain mountain-front"/><div className="mist mist-one"/><div className="mist mist-two"/><div className="map-grid"/>
       <svg className="routes" viewBox="0 0 1000 440" preserveAspectRatio="none" aria-label="Border checkpoint network map">
