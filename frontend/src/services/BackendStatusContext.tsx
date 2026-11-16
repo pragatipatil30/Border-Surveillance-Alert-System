@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { BackendStatus } from '../types/dashboard'
-import { API_BASE, checkHealth } from './api'
+import { API_BASE, getHealth, type HealthData } from './api'
 
 export interface RealtimeEvent<T = unknown> {
   event: string
@@ -13,17 +13,20 @@ interface BackendStatusValue {
   status: BackendStatus
   realtimeStatus: RealtimeStatus
   lastChecked: Date | null
+  health: HealthData | null
+  refreshHealth: () => Promise<void>
   subscribeEvents: (listener: (event: RealtimeEvent) => void) => () => void
 }
 
 const BackendStatusContext = createContext<BackendStatusValue>({
-  status: 'checking', realtimeStatus: 'checking', lastChecked: null, subscribeEvents: () => () => undefined,
+  status: 'checking', realtimeStatus: 'checking', lastChecked: null, health: null, refreshHealth: async () => undefined, subscribeEvents: () => () => undefined,
 })
 
 export function BackendStatusProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<BackendStatus>('checking')
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('checking')
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
+  const [health, setHealth] = useState<HealthData | null>(null)
   const listeners = useRef(new Set<(event: RealtimeEvent) => void>())
 
   const subscribeEvents = useCallback((listener: (event: RealtimeEvent) => void) => {
@@ -31,23 +34,23 @@ export function BackendStatusProvider({ children }: { children: React.ReactNode 
     return () => { listeners.current.delete(listener) }
   }, [])
 
-  useEffect(() => {
-    let disposed = false
-    const poll = async () => {
-      const connected = await checkHealth()
-      if (!disposed) { setStatus(connected ? 'connected' : 'disconnected'); setLastChecked(new Date()) }
-    }
-    void poll()
-    const timer = window.setInterval(() => { void poll() }, 15000)
-    return () => { disposed = true; window.clearInterval(timer) }
+  const refreshHealth = useCallback(async () => {
+    try {
+      const current = await getHealth()
+      setHealth(current); setStatus(current.status === 'ok' ? 'connected' : 'disconnected'); setLastChecked(new Date())
+    } catch { setHealth(null); setStatus('disconnected'); setLastChecked(new Date()) }
   }, [])
 
   useEffect(() => {
     let disposed = false
-    const poll = async () => {
-      const connected = await checkHealth()
-      if (!disposed) { setStatus(connected ? 'connected' : 'disconnected'); setLastChecked(new Date()) }
-    }
+    const poll = () => { if (!disposed) void refreshHealth() }
+    poll()
+    const timer = window.setInterval(poll, 15000)
+    return () => { disposed = true; window.clearInterval(timer) }
+  }, [refreshHealth])
+
+  useEffect(() => {
+    let disposed = false
     let socket: WebSocket | null = null
     let retryTimer = 0
     let heartbeatTimer = 0
@@ -78,7 +81,7 @@ export function BackendStatusProvider({ children }: { children: React.ReactNode 
         if (disposed) { socket?.close(); return }
         retryAttempt = 0
         setRealtimeStatus('connected')
-        void poll()
+        void refreshHealth()
         heartbeatTimer = window.setInterval(() => {
           if (socket?.readyState !== WebSocket.OPEN) return
           lastPing = new Date().toISOString()
@@ -108,9 +111,9 @@ export function BackendStatusProvider({ children }: { children: React.ReactNode 
       clearHeartbeat()
       socket?.close(1000, 'Provider unmounted')
     }
-  }, [])
+  }, [refreshHealth])
 
-  const value = useMemo(() => ({ status, realtimeStatus, lastChecked, subscribeEvents }), [status, realtimeStatus, lastChecked, subscribeEvents])
+  const value = useMemo(() => ({ status, realtimeStatus, lastChecked, health, refreshHealth, subscribeEvents }), [status, realtimeStatus, lastChecked, health, refreshHealth, subscribeEvents])
   return <BackendStatusContext.Provider value={value}>{children}</BackendStatusContext.Provider>
 }
 

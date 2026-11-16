@@ -16,6 +16,7 @@
 #include "api/routes/operational_routes.hpp"
 #include "api/routes/dsa_routes.hpp"
 #include "api/routes/event_routes.hpp"
+#include "api/services/app_state.hpp"
 
 namespace {
 
@@ -55,12 +56,14 @@ int main()
         border_api::HttpApp app;
         const std::string allowedOrigin = readCorsOrigin();
         const int port = readPort();
+        border_api::services::AppState::instance().initialize();
 
         app.get_middleware<crow::CORSHandler>()
             .global()
             .origin(allowedOrigin)
             .methods(crow::HTTPMethod::Get, crow::HTTPMethod::Post,
                      crow::HTTPMethod::Put, crow::HTTPMethod::Delete,
+                     crow::HTTPMethod::Patch,
                      crow::HTTPMethod::Options)
             .headers("Content-Type", "Authorization")
             .max_age(600);
@@ -76,6 +79,7 @@ int main()
         CROW_ROUTE(app, "/api/<path>")
             .methods(crow::HTTPMethod::Get, crow::HTTPMethod::Post,
                      crow::HTTPMethod::Put, crow::HTTPMethod::Delete,
+                     crow::HTTPMethod::Patch,
                      crow::HTTPMethod::Options)
         ([](const crow::request&, const std::string&) {
             return border_api::errorResponse(404, "NOT_FOUND", "API route not found");

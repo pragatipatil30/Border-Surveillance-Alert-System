@@ -64,6 +64,12 @@ void EventHub::publish(const std::string& event, crow::json::wvalue data)
     publishSerialized(serialize(event, std::move(data)));
 }
 
+bool EventHub::hasConnections()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return !connections_.empty();
+}
+
 void EventHub::publishSerialized(const std::string& message)
 {
     std::lock_guard<std::mutex> lock(mutex_);
