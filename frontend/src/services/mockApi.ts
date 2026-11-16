@@ -2,10 +2,10 @@ import type { DashboardData } from '../types/dashboard'
 
 export const mockDashboard: DashboardData = {
   metrics: [
-    { label: 'Total Intruders', value: '128', change: '+12.8% this week', icon: 'users' },
-    { label: 'High Threat', value: '08', change: '3 require review', icon: 'shield' },
-    { label: 'Active Alerts', value: '14', change: '5 awaiting dispatch', icon: 'bell' },
-    { label: 'Available Units', value: '06', change: 'of 12 patrol units', icon: 'radio' },
+    { label: 'Total Intruders', value: '128', icon: 'users' },
+    { label: 'High Threat', value: '08', icon: 'shield' },
+    { label: 'Active Alerts', value: '14', icon: 'bell' },
+    { label: 'Available Units', value: '06', icon: 'radio' },
   ],
   checkpoints: [
     { id: 'CP-01', x: 9, y: 55, state: 'normal' }, { id: 'CP-02', x: 20, y: 34, state: 'normal' },
@@ -22,23 +22,23 @@ export const mockDashboard: DashboardData = {
     { from: 'CP-08', to: 'CP-09', weight: 8 }, { from: 'CP-08', to: 'CP-10', weight: 11 }, { from: 'CP-09', to: 'CP-10', weight: 6 },
   ],
   alerts: [
-    { id: 'ALT-0248', title: 'Unidentified movement detected', checkpoint: 'CP-09 · North Ridge', time: '2 min ago', threat: 'HIGH' },
-    { id: 'ALT-0247', title: 'Thermal signature — multiple subjects', checkpoint: 'CP-03 · East Pass', time: '8 min ago', threat: 'HIGH' },
-    { id: 'ALT-0246', title: 'Perimeter sensor triggered', checkpoint: 'CP-06 · River Bend', time: '16 min ago', threat: 'MEDIUM' },
-    { id: 'ALT-0245', title: 'Camera feed restored', checkpoint: 'CP-02 · Cedar Post', time: '24 min ago', threat: 'LOW' },
-    { id: 'ALT-0244', title: 'Unscheduled signal detected', checkpoint: 'CP-07 · Stone Gate', time: '41 min ago', threat: 'MEDIUM' },
+    { id: 'ALT-0248', title: 'Unidentified movement detected', checkpoint: 'CP-09', time: '2 min ago', threat: 'HIGH', status: 'Pending' },
+    { id: 'ALT-0247', title: 'Thermal signature — multiple subjects', checkpoint: 'CP-03', time: '8 min ago', threat: 'HIGH', status: 'Pending' },
+    { id: 'ALT-0246', title: 'Perimeter sensor triggered', checkpoint: 'CP-06', time: '16 min ago', threat: 'MEDIUM', status: 'Pending' },
+    { id: 'ALT-0244', title: 'Unscheduled signal detected', checkpoint: 'CP-07', time: '41 min ago', threat: 'MEDIUM', status: 'Pending' },
+    { id: 'ALT-0245', title: 'Camera feed restored', checkpoint: 'CP-02', time: '24 min ago', threat: 'LOW', status: 'Pending' },
   ],
   threatDistribution: [{ name: 'Low', value: 42, color: '#67B98D' }, { name: 'Medium', value: 31, color: '#E9B85F' }, { name: 'High', value: 27, color: '#DB716B' }],
   activities: [
-    { id: 'IN-1048', name: 'Unidentified subject', checkpoint: 'CP-09 · North Ridge', threat: 'HIGH', status: 'Under review', time: '09:42:18' },
-    { id: 'IN-1047', name: 'Thermal movement', checkpoint: 'CP-03 · East Pass', threat: 'HIGH', status: 'Unit dispatched', time: '09:36:02' },
-    { id: 'IN-1046', name: 'Perimeter breach signal', checkpoint: 'CP-06 · River Bend', threat: 'MEDIUM', status: 'Monitoring', time: '09:28:45' },
-    { id: 'IN-1045', name: 'Motion sensor alert', checkpoint: 'CP-02 · Cedar Post', threat: 'LOW', status: 'Resolved', time: '09:14:31' },
+    { id: 'IN-1048', name: 'Unidentified subject', checkpoint: 'CP-09', threat: 'HIGH', status: 'Under review', time: '09:42:18' },
+    { id: 'IN-1047', name: 'Thermal movement', checkpoint: 'CP-03', threat: 'HIGH', status: 'Unit dispatched', time: '09:36:02' },
+    { id: 'IN-1046', name: 'Perimeter breach signal', checkpoint: 'CP-06', threat: 'MEDIUM', status: 'Monitoring', time: '09:28:45' },
+    { id: 'IN-1045', name: 'Motion sensor alert', checkpoint: 'CP-02', threat: 'LOW', status: 'Resolved', time: '09:14:31' },
   ],
   patrolUnits: [
-    { id: 'PATROL-04', checkpoint: 'CP-04 · West Ridge', status: 'Available', assignment: 'Standby', updated: '1 min ago' },
-    { id: 'PATROL-08', checkpoint: 'CP-08 · River Bend', status: 'On patrol', assignment: 'Sector sweep · Route B', updated: '3 min ago' },
-    { id: 'PATROL-02', checkpoint: 'CP-03 · East Pass', status: 'Dispatched', assignment: 'Responding to ALT-0247', updated: '8 min ago' },
+    { id: 'PATROL-04', checkpoint: 'CP-04', status: 'Available', assignment: 'Standby', updated: '1 min ago' },
+    { id: 'PATROL-08', checkpoint: 'CP-08', status: 'On patrol', assignment: 'Route patrol', updated: '3 min ago' },
+    { id: 'PATROL-02', checkpoint: 'CP-03', status: 'Available', assignment: 'Standby', updated: '8 min ago' },
     { id: 'PATROL-11', checkpoint: 'Offline', status: 'Offline', assignment: 'Signal maintenance', updated: '26 min ago' },
   ],
 }
