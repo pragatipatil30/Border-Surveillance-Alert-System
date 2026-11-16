@@ -27,7 +27,8 @@ void insertionSortIntruders(Intruder arr[], int size,
                             SortCriteria criteria, SortStats &stats);
 
 // Merge Sort
-void mergeSortIntruders(Intruder arr[], int left, int right,
+void mergeSortIntruders(Intruder arr[], int size,
+                        int left, int right,
                         SortCriteria criteria, SortStats &stats);
 
 // Quick Sort

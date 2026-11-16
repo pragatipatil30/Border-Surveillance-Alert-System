@@ -3,6 +3,7 @@
 using namespace std;
 using namespace chrono;
 // Linear Search
+// Linear Search implementation
 // Checks each intruder record one by one.
 int linearSearch(Intruder arr[], int size, int key,
                  SearchStats &stats)

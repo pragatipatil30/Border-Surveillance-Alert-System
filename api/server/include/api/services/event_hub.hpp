@@ -15,6 +15,7 @@ public:
     void remove(crow::websocket::connection& connection);
     void send(crow::websocket::connection& connection, const std::string& event, crow::json::wvalue data);
     void publish(const std::string& event, crow::json::wvalue data);
+    bool hasConnections();
 
 private:
     static std::string serialize(const std::string& event, crow::json::wvalue data);

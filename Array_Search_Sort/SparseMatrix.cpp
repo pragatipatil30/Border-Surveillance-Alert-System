@@ -6,12 +6,11 @@ SparseMatrix::SparseMatrix(int totalRows, int totalCols)
     rows = (totalRows > 0) ? totalRows : 0;
     cols = (totalCols > 0) ? totalCols : 0;
 
-    capacity = 10;
+    capacity = (rows > 0 && cols > 0) ? 10 : 0;
     count = 0;
 
-    entries = new SparseEntry[capacity];
+    entries = (capacity > 0) ? new SparseEntry[capacity] : nullptr;
 }
-
 // Destructor
 SparseMatrix::~SparseMatrix()
 {
@@ -121,10 +120,12 @@ bool SparseMatrix::isEmpty() const
 {
     return count == 0;
 }
-
 // Export stored entries for Qt visualization
 SparseEntry *SparseMatrix::exportState() const
 {
+    if (count == 0)
+        return nullptr;
+
     SparseEntry *copy = new SparseEntry[count];
 
     for (int i = 0; i < count; i++)

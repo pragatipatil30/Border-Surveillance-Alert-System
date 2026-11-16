@@ -28,6 +28,8 @@ CircularLinkedList::~CircularLinkedList()
 // Insert an intruder record at the end
 void CircularLinkedList::insert(Intruder record)
 {
+    if (search(record.id) != nullptr)
+        return;
     CircularNode *newNode = new CircularNode;
 
     newNode->data = record;
@@ -122,10 +124,10 @@ bool CircularLinkedList::isEmpty() const
 // Export records for Qt visualization
 Intruder *CircularLinkedList::exportState() const
 {
-    Intruder *copy = new Intruder[count];
+    if (count == 0)
+        return nullptr;
 
-    if (tail == nullptr)
-        return copy;
+    Intruder *copy = new Intruder[count];
 
     CircularNode *current = tail->next;
 

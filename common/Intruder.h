@@ -1,16 +1,20 @@
 #ifndef INTRUDER_H
 #define INTRUDER_H
 
-#include <iostream>
 #include <string>
-using namespace std;
 
 struct Intruder
 {
     int id;
-    string name;
-    string location;
-    int threatlevel;
+    std::string name;
+    std::string location;
+    union { int threatlevel; int threatLevel; };
+    std::string status;
+
+    Intruder() : id(0), threatlevel(1), status("Active") {}
+    Intruder(int recordId, const std::string& recordName, const std::string& recordLocation,
+             int level, const std::string& recordStatus = "Active")
+        : id(recordId), name(recordName), location(recordLocation), threatlevel(level), status(recordStatus) {}
 };
 
 #endif

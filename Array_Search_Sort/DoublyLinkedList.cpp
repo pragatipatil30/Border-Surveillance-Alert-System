@@ -24,6 +24,9 @@ DoublyLinkedList::~DoublyLinkedList()
 // Insert an intruder record at the end
 void DoublyLinkedList::insert(Intruder record)
 {
+    if (search(record.id) != nullptr)
+        return;
+
     DoublyNode *newNode = new DoublyNode;
 
     newNode->data = record;
@@ -106,6 +109,9 @@ bool DoublyLinkedList::isEmpty() const
 // Export records for Qt visualization
 Intruder *DoublyLinkedList::exportState() const
 {
+    if (count == 0)
+        return nullptr;
+
     Intruder *copy = new Intruder[count];
 
     DoublyNode *current = head;

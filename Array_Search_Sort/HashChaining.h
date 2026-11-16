@@ -32,6 +32,7 @@ public:
     bool isEmpty() const;
     int getCapacity() const;
 
+    // Caller must delete every copied node and then delete[] the returned array.
     HashNode **exportState() const;
 };
 

@@ -166,12 +166,14 @@ static void mergeSortHelper(Intruder arr[], int left, int right,
 }
 
 // Merge Sort
-void mergeSortIntruders(Intruder arr[], int left, int right,
+void mergeSortIntruders(Intruder arr[], int size,
+                        int left, int right,
                         SortCriteria criteria, SortStats &stats)
 {
     stats = SortStats{};
 
-    if (arr == nullptr || left < 0 || right < left)
+    if (arr == nullptr || size <= 0 ||
+        left < 0 || right < left || right >= size)
         return;
 
     auto start = high_resolution_clock::now();

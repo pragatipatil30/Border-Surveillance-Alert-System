@@ -71,6 +71,7 @@ public:
     T&   peek()        { return data_[top_ - 1]; }
     bool empty() const { return top_ == 0; }
     int  size()  const { return top_; }
+    void clear() { top_ = 0; }
     std::vector<T> exportState() const
     {
         return std::vector<T>(data_, data_ + top_); // bottom to top
@@ -131,6 +132,17 @@ public:
 
     bool empty() const { return count_ == 0; }
     int  size()  const { return count_; }
+    int capacity() const { return capacity_; }
+    int frontIndex() const { return count_ == 0 ? -1 : front_; }
+    int rearIndex() const { return count_ == 0 ? -1 : (front_ + count_ - 1) % capacity_; }
+    void clear() { front_ = 0; count_ = 0; }
+    std::vector<T> exportSlots() const { return std::vector<T>(data_, data_ + capacity_); }
+    std::vector<bool> exportOccupied() const
+    {
+        std::vector<bool> occupied(static_cast<std::size_t>(capacity_), false);
+        for (int i = 0; i < count_; ++i) occupied[static_cast<std::size_t>((front_ + i) % capacity_)] = true;
+        return occupied;
+    }
     std::vector<T> exportState() const
     {
         std::vector<T> values;

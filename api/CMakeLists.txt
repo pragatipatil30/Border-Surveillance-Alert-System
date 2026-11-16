@@ -30,11 +30,15 @@ add_executable(border_api
   server/routes/dsa_routes.cpp
   server/routes/event_routes.cpp
   server/services/intruder_repository.cpp
+  server/services/app_state.cpp
   server/services/dsa_runtime.cpp
   server/services/event_hub.cpp
   ../Graph_Map/Graph.cpp
   ../Graph_Map/GraphAlgorithms.cpp
   ../Array_Search_Sort/HashChaining.cpp
+  ../Array_Search_Sort/SinglyLinkedList.cpp
+  ../Array_Search_Sort/Sorting.cpp
+  ../Graph_Map/BST.cpp
 )
 target_compile_features(border_api PRIVATE cxx_std_17)
 target_include_directories(border_api PRIVATE server/include ../common ../Graph_Map ../Array_Search_Sort)
